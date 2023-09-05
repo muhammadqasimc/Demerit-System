@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demerits Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+   
+    
+</head>
+<body>
+    <div class="container">
+        <h1>Demerits Form</h1>
+        <form action="/submit_form" method="POST">
+            <label for="grade">Select Grade:</label>
+            <select id="grade" name="grade">
+                {% for grade in grades %}
+                    <option value="{{ grade }}">{{ grade }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <label for="name">Select Name:</label>
+            <select id="name" name="name">
+                <option value="">-- Select a grade first --</option>
+            </select>
+            <br>
+            <label>Select Offenses:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" name="offense" value="Offense 1"> Offense 1
+                <input type="checkbox" name="offense" value="Offense 2"> Offense 2
+                <!-- Add more offense options as needed -->
+            </div>
+            <br>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+    <script>
+        document.getElementById('grade').addEventListener('change', function () {
+            var selectedGrade = this.value;
+            var namesSelect = document.getElementById('name');
+    
+            // Clear the current options
+            namesSelect.innerHTML = '<option value="">-- Select a name --</option>';
+    
+            // Fetch the names for the selected grade from the server
+            fetch(`/get_names_by_grade/${selectedGrade}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(function (name) {
+                        var option = document.createElement('option');
+                        option.value = name;
+                        option.text = name;
+                        namesSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+    
+</body>
+</html>

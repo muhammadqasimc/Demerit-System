@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Name</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    
+</head>
+<body>
+    <div class="container">
+        <h1>Select Name</h1>
+        <h2>{{ data.iloc[0]['Name'] }}</h2>
+        <form action="/submit_form" method="POST">
+            <label for="name">Select Name:</label>
+            <select id="name" name="name">
+                {% for name in names %}
+                    <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <label>Select Offenses:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" name="offense" value="Offense 1"> Offense 1
+                <input type="checkbox" name="offense" value="Offense 2"> Offense 2
+                <!-- Add more offense options as needed -->
+            </div>
+        
+            
+            <br>
+
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+</body>
+</html>
