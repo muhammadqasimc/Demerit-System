@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSV Files</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='csvfiles.css') }}">
+</head>
+<body>
+    <h1>CSV Files</h1>
+
+    <form action="/filter_by_grade" method="post" class="form-group">
+        <label for="grade_select">Filter by Grade:</label>
+        <select id="grade_select" name="selected_grade">
+            <option value="">All Grades</option>
+            {% for grade in grades %}
+                <option value="{{ grade }}">{{ grade }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Apply Filter">
+    </form>
+
+    <form action="/filter_by_student" method="post" class="form-group">
+        <label for="student_select">Filter by Student:</label>
+        <select id="student_select" name="selected_student">
+            <option value="">All Students</option>
+            {% for student in students %}
+                <option value="{{ student }}">{{ student }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Apply Filter">
+    </form>
+
+    <form action="/filter_by_date" method="post" class="form-group">
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date">
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date">
+        <input type="submit" value="Apply Date Range">
+    </form>
+    <form action="/bulk_download_csv" method="post">
+        <label>Select files to download:</label>
+        <ul>
+            {% for csv_file in filtered_csv_files %}
+                <li>
+                    <label>
+                        <input type="checkbox" name="selected_files" value="{{ csv_file['file_path'] }}">
+                        {{ csv_file['grade_folder'] }} - {{ csv_file['file_name'] }}
+                    </label>
+                </li>
+            {% endfor %}
+        </ul>
+        <input type="submit" value="Bulk Download">
+    </form>
+
+    <br>
+
+    <h2>CSV File List:</h2>
+    <ul>
+        {% for csv_file in filtered_csv_files %}
+            <li>{{ csv_file['grade_folder'] }} - {{ csv_file['file_name'] }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

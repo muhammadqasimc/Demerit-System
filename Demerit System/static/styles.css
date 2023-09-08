@@ -1,37 +1,46 @@
 /* styles.css */
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
     background-color: #f4f4f4;
     margin: 0;
     padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
 .container {
-    max-width: 600px;
+    max-width: 400px;
     margin: 0 auto;
     padding: 20px;
     background-color: #fff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    text-align: center;
 }
 
 h1 {
-    text-align: center;
-    color: #333;
+    color: #007bff;
 }
 
 label {
     display: block;
     margin-bottom: 10px;
     font-weight: bold;
+    color: #333;
 }
 
 select, input[type="checkbox"] {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin-bottom: 20px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    background-color: #f9f9f9;
+    color: #555;
+    font-size: 16px;
 }
 
 .checkbox-group {
@@ -43,17 +52,42 @@ select, input[type="checkbox"] {
 input[type="checkbox"] {
     flex: 1;
     margin-right: 10px;
+    cursor: pointer;
 }
 
 input[type="submit"] {
     background-color: #007bff;
     color: #fff;
-    padding: 10px 20px;
+    padding: 12px 20px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 input[type="submit"]:hover {
     background-color: #0056b3;
+}
+/* Style for the logo image */
+.header img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+/* styles.css */
+/* Style the Logout button */
+.logout-button {
+    background-color: #ff5733; /* Red background color */
+    color: #fff; /* White text color */
+    padding: 10px 20px; /* Padding around the button text */
+    border: none; /* Remove button border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Change cursor to a pointer on hover */
+    transition: background-color 0.3s; /* Smooth background color transition */
+}
+
+/* Hover effect for the button */
+.logout-button:hover {
+    background-color: #ff2a00; /* Darker red on hover */
 }

@@ -5,12 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demerits Form</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-   
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+        // Initialize SignaturePad for teacher's signature
+        var teacherSignaturePad = new SignaturePad(document.getElementById('teacherSignature'));
+    
+        // Initialize SignaturePad for student's signature
+        var studentSignaturePad = new SignaturePad(document.getElementById('studentSignature'));
+    
+        // Handle form submission
+        function submitForm() {
+            // Get signature data as base64-encoded images
+            var teacherSignatureData = teacherSignaturePad.toDataURL();
+            var studentSignatureData = studentSignaturePad.toDataURL();
+    
+            // Set signature data as hidden input values in the form
+            document.getElementById('teacher_signature').value = teacherSignatureData;
+            document.getElementById('student_signature').value = studentSignatureData;
+    
+            // Submit the form
+            document.getElementById('submissionForm').submit();
+        }
+        });
+    </script> -->
     
 </head>
 <body>
     <div class="container">
-        <h1>Demerits Form</h1>
+        <div class="header">
+            <img src="{{ url_for('static', filename='Logo.png') }}" alt="Logo">
+            <h1>Demerits Form</h1>
+        </div>
+        
+        
+        
         <form action="/submit_form" method="POST">
             <label for="grade">Select Grade:</label>
             <select id="grade" name="grade">
@@ -24,12 +55,47 @@
                 <option value="">-- Select a grade first --</option>
             </select>
             <br>
-            <label>Select Offenses:</label>
-            <div class="checkbox-group">
-                <input type="checkbox" name="offense" value="Offense 1"> Offense 1
-                <input type="checkbox" name="offense" value="Offense 2"> Offense 2
-                <!-- Add more offense options as needed -->
-            </div>
+            <label>Select Offense:</label>
+            <select name="offense" multiple>
+                <option value="Continuous Misdemeanours as mentioned in Category 2">Continuous Misdemeanours as mentioned in Category 2</option>
+                <option value="Smoking during school time and on school premises">Smoking during school time and on school premises</option>
+                <option value="Continuous absence from classes or school activities">Continuous absence from classes or school activities</option>
+                <option value="Dishonesty..eg.COPYING DURING TESTS OR EXAMS, FORGING SIGNATURES">Dishonesty..eg.COPYING DURING TESTS OR EXAMS, FORGING SIGNATURES</option>
+                <option value="Placing incriminating items in another learner's bag">Placing incriminating items in another learner's bag</option>
+                <option value="HIDING A FELLOW LEARNERS PROPERTY">HIDING A FELLOW LEARNERS PROPERTY</option>
+                <option value="TRUANCY OF SEVERAL CLASSES">TRUANCY OF SEVERAL CLASSES</option>
+                <option value="USING OF FIREWORKS ON SCHOOL PREMISES">USING OF FIREWORKS ON SCHOOL PREMISES</option>
+                <option value="BEING IN POSSESSION OF OBJECTIONABLE ITEMS, OBJECTS">BEING IN POSSESSION OF OBJECTIONABLE ITEMS, OBJECTS</option>
+                <option value="INDECENT HARMFUL GRAFFITI / DRAWINGS">INDECENT HARMFUL GRAFFITI / DRAWINGS</option>
+                <option value="SERIOUS DISRUPTION OF LEARNING PROCESS IN CLASS">SERIOUS DISRUPTION OF LEARNING PROCESS IN CLASS</option>
+                <option value="TAKING PART IN A COSPIRACY TO DISRUPT THE PROPER FUNCTIONING OF THE SCHOOL BY COLLECTIVE ACTIVITIES">TAKING PART IN A COSPIRACY TO DISRUPT THE PROPER FUNCTIONING OF THE SCHOOL BY COLLECTIVE ACTIVITIES</option>
+                <option value="BEING IN POSSESSION OF A CELL PHONE">BEING IN POSSESSION OF A CELL PHONE</option>
+                <option value="FIGHTING, BULLYING">FIGHTING, BULLYING</option>
+                <option value="DISRESPECT, VERBAL ABUSE, RUDENESS, RACISM @ EDUCATORS">DISRESPECT, VERBAL ABUSE, RUDENESS, RACISM @ EDUCATORS</option>
+                <option value="RELIGIOUS/ CULTURAL PRACTICE TO DISRUPT THE PROPER FUNCTIONING OF THE SCHOOL">RELIGIOUS/ CULTURAL PRACTICE TO DISRUPT THE PROPER FUNCTIONING OF THE SCHOOL</option>
+                <option value="CONTINUOUS ABSENTEEISM OF DETENTION">CONTINUOUS ABSENTEEISM OF DETENTION</option>
+                <option value="DISRUPTING DETENTION CLASS/LEAVING DETENTION CLASS">DISRUPTING DETENTION CLASS/LEAVING DETENTION CLASS</option>
+                <option value="CONTINUOUS MISDEMEANOURS AS MENTIONED IN CATEGORY 2">CONTINUOUS MISDEMEANOURS AS MENTIONED IN CATEGORY 2</option>
+                <option value="SEXUAL HARASSMENT OR ABUSE">SEXUAL HARASSMENT OR ABUSE</option>
+                <option value="POSSESSION AND PEDDLING OF NARCOTIC SUBSTANCES">POSSESSION AND PEDDLING OF NARCOTIC SUBSTANCES</option>
+                <option value="CRIMINAL BEHAVIOUR, RAPE, ASSAULT, INTIMIDATION, DRUGS ENDANGERS LIVES, MURDER.">CRIMINAL BEHAVIOUR, RAPE, ASSAULT, INTIMIDATION, DRUGS ENDANGERS LIVES, MURDER.</option>
+                <option value="REPEATED DEFIANCE OF SCHOOL AUTHORITIES">REPEATED DEFIANCE OF SCHOOL AUTHORITIES</option>
+                <option value="IN POSSESSION OF INTOXICANTS, ALCOHOL, WEAPONS">IN POSSESSION OF INTOXICANTS, ALCOHOL, WEAPONS</option>
+                <option value="THREATENING WITH A DANGEROUS WEAPON.">THREATENING WITH A DANGEROUS WEAPON.</option>
+                <option value="INTENTIONALLY CAUSING PHYSICAL INJURY TO SOMEBODY">INTENTIONALLY CAUSING PHYSICAL INJURY TO SOMEBODY</option>
+                <option value="EXTORTION OF ANOTHER PERSON'S PROPERTY">EXTORTION OF ANOTHER PERSON'S PROPERTY</option>
+                <option value="ASSAULT">ASSAULT</option>
+                <option value="INTENTIONALLY USING A DANGEROUS WEAPON">INTENTIONALLY USING A DANGEROUS WEAPON</option>
+                <option value="CONTINUOUS DISHONESTY eg. COPYING DURING EXAMS, FORGING SIGNATURES">CONTINUOUS DISHONESTY eg. COPYING DURING EXAMS, FORGING SIGNATURES</option>
+            </select>
+
+            <br>
+            <label>Attach Photo:</label>
+            <input type="file" name="photo" accept="image/*">
+            <!-- <canvas id="teacherSignature" width="300" height="150"></canvas>
+            <canvas id="studentSignature" width="300" height="150"></canvas>
+
+            <br> -->
             <br>
             <input type="submit" value="Submit">
         </form>
@@ -60,4 +126,7 @@
     </script>
     
 </body>
+<footer class="col">
+    <a href="/logout" class="logout-button">Logout</a>
+</footer>
 </html>
