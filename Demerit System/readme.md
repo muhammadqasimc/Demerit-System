@@ -17,3 +17,6 @@ period predertermine according to time
 instead of only having a dropdown with names also give the option to search for a name
 
 also have a column on the export file. this should be according to who submitted based on the login details.
+
+
+now add the teacher signature and and fix the csv_files page. also start implementing a backup solution. and start working on the security of the app also fix the pdf color and work on the multline offences and add the period times, alsp work on the directory/create student directories and dont replalce files
