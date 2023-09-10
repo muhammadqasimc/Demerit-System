@@ -1,5 +1,6 @@
 import base64
 import io
+import uuid
 from zipfile import ZipFile
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session, send_from_directory
 import pandas as pd
@@ -11,6 +12,17 @@ import csv  # Added for CSV file operations
 from flask import send_file, request
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas  # Add this import statement
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+
+from fpdf import FPDF
+
+
+
 
 app = Flask(__name__)
 
@@ -48,7 +60,7 @@ def load_pending_submissions():
 # Function to save pending submissions to a CSV file
 def save_pending_submissions(submissions):
     with open(PENDING_SUBMISSIONS_CSV, mode='w', newline='') as file:
-        fieldnames = ['Name', 'Grade', 'Date', 'Offenses']
+        fieldnames = ['Name', 'Grade', 'Date', 'Offenses', 'StudentSignature', 'TeacherSignature']
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         for submission in submissions:
@@ -86,6 +98,49 @@ def index():
     
     return render_template('index.html', grades=grades, namesByGrade=names_by_grade)
 
+@app.route('/green')
+def green():
+    df['Grade'] = df['Grade'].astype(int)
+    
+    # Get unique grade values
+    grades = sorted(df['Grade'].unique())
+    
+    # Create a dictionary to store names grouped by grade
+    names_by_grade = {}
+    for grade in grades:
+        names_by_grade[grade] = df[df['Grade'] == grade]['Name'].tolist()
+    
+    return render_template('green.html', grades=grades, namesByGrade=names_by_grade)
+
+@app.route('/yellow')
+def yellow():
+    df['Grade'] = df['Grade'].astype(int)
+    
+    # Get unique grade values
+    grades = sorted(df['Grade'].unique())
+    
+    # Create a dictionary to store names grouped by grade
+    names_by_grade = {}
+    for grade in grades:
+        names_by_grade[grade] = df[df['Grade'] == grade]['Name'].tolist()
+    
+    return render_template('yellow.html', grades=grades, namesByGrade=names_by_grade)
+    
+
+@app.route('/pink')
+def pink():
+    df['Grade'] = df['Grade'].astype(int)
+    
+    # Get unique grade values
+    grades = sorted(df['Grade'].unique())
+    
+    # Create a dictionary to store names grouped by grade
+    names_by_grade = {}
+    for grade in grades:
+        names_by_grade[grade] = df[df['Grade'] == grade]['Name'].tolist()
+    
+    return render_template('pink.html', grades=grades, namesByGrade=names_by_grade)
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -112,15 +167,33 @@ def get_names_by_grade(selected_grade):
     names = df[df['Grade'] == selected_grade]['Name'].tolist()
     return jsonify(names)
 
+# Define the directory where signature images will be saved
+signature_folder = 'signatures'
+
 @app.route('/submit_form', methods=['POST'])
 def submit_form():
     selected_grade = request.form['grade']
     selected_name = request.form['name']
     selected_offenses = request.form.getlist('offense')
     current_date = datetime.now().strftime('%Y-%m-%d')
-    
 
-    
+    # Handle the signature image
+    signature_data_url = request.form['signature']
+    if signature_data_url:
+        # Generate a unique filename for the signature image based on submission information
+        signature_filename = f'{selected_name}_{current_date}.png'
+        # Create the full path to save the signature image
+        signature_path = os.path.join(signature_folder, signature_filename)
+        print("Signature Path:", signature_path)
+
+        # Convert the data URL back to an image
+        signature_image_data = signature_data_url.split(',')[1]  # Remove the data URL prefix
+        signature_image_binary = base64.b64decode(signature_image_data)
+
+        # Save the image as PNG to preserve transparency
+        with open(signature_path, 'wb') as signature_file:
+            signature_file.write(signature_image_binary)
+
     # Create a new submission dictionary
     new_submission = {
         'Name': selected_name,
@@ -155,62 +228,76 @@ def approve_submission(index):
     if 0 <= index < len(submissions_pending_approval):
         submission = submissions_pending_approval.pop(index)
         approved_submissions.append(submission)
-        
+    
         # Create directory structure for the grade
         grade_folder = os.path.join('Demerits', f'Grade_{submission["Grade"]}')
         os.makedirs(grade_folder, exist_ok=True)
 
-        # Generate a unique filename based on name and date
-        base_filename = f'{submission["Name"]}_{submission["Date"]}.csv'
-        filename = base_filename
-        counter = 1
+        # Generate a unique filename based on name and date for the PDF
+        pdf_filename = f'{submission["Name"]}_{submission["Date"]}.pdf'
+        pdf_path = os.path.join(grade_folder, pdf_filename)
 
-        # Check if the file already exists and generate a new filename if needed
-        while os.path.exists(os.path.join(grade_folder, filename)):
-            filename = f'{submission["Name"]}_{submission["Date"]}_{counter}.csv'
-            counter += 1
+        # Create a PDF with fpdf
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
 
-        # Save the submission to the unique CSV file in the grade folder
-        with open(os.path.join(grade_folder, filename), mode='w', newline='') as file:
-            fieldnames = ['Name', 'Grade', 'Date', 'Offenses']
-            writer = csv.DictWriter(file, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerow(submission)
-        
+       # Create directory structure for the grade
+        grade_folder = os.path.join('Demerits', f'Grade_{submission["Grade"]}')
+        os.makedirs(grade_folder, exist_ok=True)
+
+        # Generate a unique filename based on name and date for the PDF
+        pdf_filename = f'{submission["Name"]}_{submission["Date"]}.pdf'
+        pdf_path = os.path.join(grade_folder, pdf_filename)
+
+        # Create a PDF with fpdf
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", style='B', size=12)  # Set font to bold
+
+        # Create a vertical table for the content
+        pdf.cell(200, 10, txt="Demerits Form", ln=True, align='C', fill=True)  # Background fill
+        pdf.ln(10)  # Add some space
+
+        pdf.set_fill_color(200, 200, 200)  # Background fill color
+
+        # Create a cell for each piece of information
+        pdf.cell(0, 10, txt="Name:", ln=True, fill=True)
+        pdf.cell(0, 10, txt=submission['Name'], ln=True)
+
+        pdf.cell(0, 10, txt="Grade:", ln=True, fill=True)
+        pdf.cell(0, 10, txt=str(submission['Grade']), ln=True)
+
+        pdf.cell(0, 10, txt="Date:", ln=True, fill=True)
+        pdf.cell(0, 10, txt=submission['Date'], ln=True)
+
+        pdf.cell(0, 10, txt="Offenses:", ln=True, fill=True)
+
+        # Split offenses into separate lines and display vertically
+        offenses = submission['Offenses'].split('\n')
+        for offense in offenses:
+            # Add a border to the cell
+            pdf.cell(0, 10, txt=offense, ln=True, border=1, align='L', fill=False)  # Single-line cell for each offense
+
+        pdf.ln(10)  # Add some space
+
+        # Title for the student's signature
+        pdf.set_font("Arial", style='B', size=12)
+        pdf.cell(200, 10, txt="Student Signature", ln=True, align='C')
+
+        # Create a box for the student's signature
+        pdf.set_fill_color(255, 255, 255)  # White background
+        pdf.rect(10, pdf.get_y(), 190, 40, style='F')  # Rectangle for the signature
+
+        # Load and embed the student's signature image in the box
+        signature_filename = f'{submission["Name"]}_{submission["Date"]}.png'
+        signature_path = os.path.join(signature_folder, signature_filename)
+        pdf.image(signature_path, x=15, y=pdf.get_y() + 5, w=180, h=30)  # Adjust position and size
+        # Save the PDF to the file
+        pdf.output(pdf_path)
+
         # Save pending submissions to the CSV file
         save_pending_submissions(submissions_pending_approval)
-        
-        # Notify with a sound
-        # Start of the code snippet for saving to XLSX with styling
-        # Save the submission to an XLSX file with styling
-        xlsx_filename = os.path.join(grade_folder, filename.replace('.csv', '.xlsx'))
-
-        # Create a Pandas DataFrame from the submission data
-        submission_df = pd.DataFrame([submission])
-
-        # Create a Pandas ExcelWriter using openpyxl as the engine
-        excel_writer = pd.ExcelWriter(xlsx_filename, engine='openpyxl')
-
-        # Write the DataFrame to the Excel file with styling
-        submission_df.to_excel(excel_writer, index=False, header=False)
-
-        # Get the xlsxwriter workbook and worksheet objects from the Pandas ExcelWriter
-        workbook  = excel_writer.book
-        worksheet = workbook.active  # Use the default (first) worksheet
-
-        # Create a header row with styling
-        header_format = Font(bold=True)
-        header_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
-        for col_num, value in enumerate(submission_df.columns.values):
-            cell = worksheet.cell(row=1, column=col_num+1)
-            cell.value = value
-            cell.font = header_format
-            cell.fill = header_fill
-
-        # Save the Excel file
-        excel_writer.save()
-        # End of the code snippet for saving to XLSX with styling
-
 
     return redirect(url_for('admin'))
 
@@ -418,4 +505,4 @@ def bulk_download_csv():
 
 
 if __name__ == '__main__':
-    app.run(host='192.168.10.43', port=8082)
+    app.run(host='192.168.10.43', port=8080)

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demerits Form - Yellow Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    
+    <script>
+        // Yellow Page
+        const teacherSignatureCanvas = document.getElementById('teacherSignature');
+        const studentSignatureCanvas = document.getElementById('studentSignature');
+        const teacherClearButton = document.getElementById('teacherClearButton');
+        const studentClearButton = document.getElementById('studentClearButton');
+        const teacherSaveButton = document.getElementById('teacherSaveButton');
+        const studentSaveButton = document.getElementById('studentSaveButton');
+        const teacherSignatureCtx = teacherSignatureCanvas.getContext('2d');
+        const studentSignatureCtx = studentSignatureCanvas.getContext('2d');
+    
+        let isTeacherSigning = false;
+        let isStudentSigning = false;
+    
+        teacherSignatureCanvas.addEventListener('mousedown', () => {
+            isTeacherSigning = true;
+            teacherSignatureCtx.beginPath();
+            teacherSignatureCtx.moveTo(event.clientX - teacherSignatureCanvas.getBoundingClientRect().left, event.clientY - teacherSignatureCanvas.getBoundingClientRect().top);
+        });
+    
+        teacherSignatureCanvas.addEventListener('mousemove', () => {
+            if (!isTeacherSigning) return;
+            teacherSignatureCtx.lineTo(event.clientX - teacherSignatureCanvas.getBoundingClientRect().left, event.clientY - teacherSignatureCanvas.getBoundingClientRect().top);
+            teacherSignatureCtx.stroke();
+        });
+    
+        teacherSignatureCanvas.addEventListener('mouseup', () => {
+            isTeacherSigning = false;
+        });
+    
+        teacherClearButton.addEventListener('click', () => {
+            teacherSignatureCtx.clearRect(0, 0, teacherSignatureCanvas.width, teacherSignatureCanvas.height);
+        });
+    
+        teacherSaveButton.addEventListener('click', () => {
+            const teacherSignatureImage = teacherSignatureCanvas.toDataURL('image/png');
+            document.getElementById('teacherSignatureInput').value = teacherSignatureImage;
+        });
+    
+        studentSignatureCanvas.addEventListener('mousedown', () => {
+            isStudentSigning = true;
+            studentSignatureCtx.beginPath();
+            studentSignatureCtx.moveTo(event.clientX - studentSignatureCanvas.getBoundingClientRect().left, event.clientY - studentSignatureCanvas.getBoundingClientRect().top);
+        });
+    
+        studentSignatureCanvas.addEventListener('mousemove', () => {
+            if (!isStudentSigning) return;
+            studentSignatureCtx.lineTo(event.clientX - studentSignatureCanvas.getBoundingClientRect().left, event.clientY - studentSignatureCanvas.getBoundingClientRect().top);
+            studentSignatureCtx.stroke();
+        });
+    
+        studentSignatureCanvas.addEventListener('mouseup', () => {
+            isStudentSigning = false;
+        });
+    
+        studentClearButton.addEventListener('click', () => {
+            studentSignatureCtx.clearRect(0, 0, studentSignatureCanvas.width, studentSignatureCanvas.height);
+        });
+    
+        studentSaveButton.addEventListener('click', () => {
+            const studentSignatureImage = studentSignatureCanvas.toDataURL('image/png');
+            document.getElementById('studentSignatureInput').value = studentSignatureImage;
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{{ url_for('static', filename='Logo.png') }}" alt="Logo">
+            <h1>Demerits Form - Yellow Page</h1>
+        </div>
+        
+        <form action="/submit_form" method="POST">
+            <label for="grade">Select Grade:</label>
+            <select id="grade" name="grade">
+                {% for grade in grades %}
+                    <option value="{{ grade }}">{{ grade }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <label for="name">Select Name:</label>
+            <select id="name" name="name">
+                <option value="">-- Select a grade first --</option>
+            </select>
+            <br>
+            <label>Select Offense:</label>
+            <select name="offense">
+                <option value="12 LATE COMING TO SCHOOL OR SCHOOL ACTIVITIES">12 LATE COMING TO SCHOOL OR SCHOOL ACTIVITIES</option>
+            </select>
+
+            <br>
+            <label>Attach Photo:</label>
+            <input type="file" name="photo" accept="image/*">
+            
+            <br>
+            <canvas id="teacherSignature" width="400" height="200"></canvas>
+            <button id="teacherClearButton">Clear Teacher's Signature</button>
+            <button id="teacherSaveButton">Save Teacher's Signature</button>
+
+            <canvas id="studentSignature" width="400" height="200"></canvas>
+            <button id="studentClearButton">Clear Student's Signature</button>
+            <button id="studentSaveButton">Save Student's Signature</button>
+            
+            <input type="hidden" name="teacher_signature" id="teacherSignatureInput">
+            <input type="hidden" name="student_signature" id="studentSignatureInput">
+
+            <br>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+    <script>
+        document.getElementById('grade').addEventListener('change', function () {
+            var selectedGrade = this.value;
+            var namesSelect = document.getElementById('name');
+    
+            // Clear the current options
+            namesSelect.innerHTML = '<option value="">-- Select a name --</option>';
+    
+            // Fetch the names for the selected grade from the server
+            fetch(`/get_names_by_grade/${selectedGrade}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(function (name) {
+                        var option = document.createElement('option');
+                        option.value = name;
+                        option.text = name;
+                        namesSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+    
+</body>
+</html>
