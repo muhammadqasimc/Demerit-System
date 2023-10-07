@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Demerit Directory</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='downfiles.css') }}">
+
+</head>
+<body>
+    <h1>Demerit Directory</h1>
+    
+    <form method="POST" action="/filter_directory">
+        <label for="grade">Select Grade:</label>
+        <select id="grade" name="selected_grade">
+            <option value="">All</option>
+            {% for grade in grades %}
+                <option value="{{ grade }}">{{ grade }}</option>
+            {% endfor %}
+        </select>
+        
+        <label for="student">Select Student:</label>
+        <select id="student" name="selected_student">
+            <option value="">All</option>
+            {% for student in students %}
+                <option value="{{ student }}">{{ student }}</option>
+            {% endfor %}
+        </select>
+        
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date">
+        
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date">
+        
+        <button type="submit">Filter</button>
+    </form>
+
+    <form method="POST" action="/bulk_download_directory" id="download-form">
+        <label for="selected_files">Select Files to Download:</label>
+        <select multiple id="selected_files" name="selected_files[]">
+            {% for file_info in filtered_pdf_files %}
+                <option value="{{ file_info['file_path'] }}">{{ file_info['file_name'] }}</option>
+            {% endfor %}
+        </select>
+        
+        <button type="button" id="download-button">Bulk Download Selected Files</button>
+    </form>
+
+    <script>
+        document.getElementById('download-button').addEventListener('click', function() {
+            // Create an array to store selected file paths
+            var selectedFiles = [];
+            
+            // Find all options in the select element
+            var selectElement = document.getElementById('selected_files');
+            var options = selectElement.options;
+
+            // Loop through options and check if they are selected
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].selected) {
+                    selectedFiles.push(options[i].value);
+                }
+            }
+
+            // Send the selected files to the server for download
+            fetch('/bulk_download_directory', {
+                method: 'POST',
+                body: JSON.stringify(selectedFiles),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(function(response) {
+                // Handle the server's response here, e.g., show a success message
+                console.log('Response from server:', response);
+                // You can also redirect the user or perform other actions as needed
+            })
+            .catch(function(error) {
+                // Handle errors here, e.g., display an error message
+                console.error('Error:', error);
+            });
+        });
+
+    </script>
+    
+</body>
+</html>

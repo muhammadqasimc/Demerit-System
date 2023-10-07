@@ -1,0 +1,86 @@
+/* Style the page header */
+h1 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* Style the form container */
+form {
+    text-align: center;
+    margin: 20px auto;
+    width: 80%;
+    max-width: 600px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+}
+
+/* Style form labels */
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* Style form select elements */
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+/* Style form date inputs */
+input[type="date"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+/* Style the "Filter" button */
+button[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Style the file selection form */
+form:last-child {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #ccc;
+}
+
+/* Style the file selection container */
+form:last-child select {
+    height: 200px;
+}
+
+/* Style the "Bulk Download" button */
+form:last-child button[type="submit"] {
+    margin-top: 20px;
+    background-color: #28a745;
+}
+
+form:last-child button[type="submit"]:hover {
+    background-color: #1a862d;
+}

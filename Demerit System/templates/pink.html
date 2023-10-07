@@ -5,33 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demerits Form</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-        // Initialize SignaturePad for teacher's signature
-        var teacherSignaturePad = new SignaturePad(document.getElementById('teacherSignature'));
-    
-        // Initialize SignaturePad for student's signature
-        var studentSignaturePad = new SignaturePad(document.getElementById('studentSignature'));
-    
-        // Handle form submission
-        function submitForm() {
-            // Get signature data as base64-encoded images
-            var teacherSignatureData = teacherSignaturePad.toDataURL();
-            var studentSignatureData = studentSignaturePad.toDataURL();
-    
-            // Set signature data as hidden input values in the form
-            document.getElementById('teacher_signature').value = teacherSignatureData;
-            document.getElementById('student_signature').value = studentSignatureData;
-    
-            // Submit the form
-            document.getElementById('submissionForm').submit();
-        }
-        });
-    </script> -->
-    
 </head>
 <body>
     <div class="container">
@@ -88,18 +63,60 @@
                 <option value="INTENTIONALLY USING A DANGEROUS WEAPON">INTENTIONALLY USING A DANGEROUS WEAPON</option>
                 <option value="CONTINUOUS DISHONESTY eg. COPYING DURING EXAMS, FORGING SIGNATURES">CONTINUOUS DISHONESTY eg. COPYING DURING EXAMS, FORGING SIGNATURES</option>
             </select>
+            <br>
+            <label>Draw Signature:</label>
+            <canvas id="signature-pad" width="300" height="150"></canvas>
+            <button type="button" id="clear-signature">Clear Signature</button>
+            <input type="hidden" name="signature" id="signature">
 
+        
             <br>
             <label>Attach Photo:</label>
             <input type="file" name="photo" accept="image/*">
-            <!-- <canvas id="teacherSignature" width="300" height="150"></canvas>
-            <canvas id="studentSignature" width="300" height="150"></canvas>
-
-            <br> -->
+            <br>
+            <label>Notes:</label>
+            <input type="text" name="notes">
             <br>
             <input type="submit" value="Submit">
         </form>
     </div>
+    <script>
+        // Initialize Signature Pad
+        var canvas = document.getElementById('signature-pad');
+        var signaturePad = new SignaturePad(canvas);
+    
+        // Clear Signature Button
+        var clearButton = document.getElementById('clear-signature');
+        clearButton.addEventListener('click', function () {
+            signaturePad.clear();
+        });
+        // Handle form submission
+        document.querySelector('form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Convert the signature to a data URL and set it in the hidden input field
+            var signatureInput = document.getElementById('signature');
+            signatureInput.value = signaturePad.toDataURL();
+
+            // Now you can submit the form using AJAX or any other method
+            // Example using AJAX:
+            var formData = new FormData(this);
+            fetch('/submit_form', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Handle the response if needed
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    
+        
+    </script>
+    
     <script>
         document.getElementById('grade').addEventListener('change', function () {
             var selectedGrade = this.value;
@@ -126,5 +143,4 @@
     </script>
     
 </body>
-
 </html>

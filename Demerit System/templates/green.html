@@ -3,80 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demerits Form - Yellow Page</title>
+    <title>Demerits Form</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    
-    <script>
-        // Yellow Page
-        const teacherSignatureCanvas = document.getElementById('teacherSignature');
-        const studentSignatureCanvas = document.getElementById('studentSignature');
-        const teacherClearButton = document.getElementById('teacherClearButton');
-        const studentClearButton = document.getElementById('studentClearButton');
-        const teacherSaveButton = document.getElementById('teacherSaveButton');
-        const studentSaveButton = document.getElementById('studentSaveButton');
-        const teacherSignatureCtx = teacherSignatureCanvas.getContext('2d');
-        const studentSignatureCtx = studentSignatureCanvas.getContext('2d');
-    
-        let isTeacherSigning = false;
-        let isStudentSigning = false;
-    
-        teacherSignatureCanvas.addEventListener('mousedown', () => {
-            isTeacherSigning = true;
-            teacherSignatureCtx.beginPath();
-            teacherSignatureCtx.moveTo(event.clientX - teacherSignatureCanvas.getBoundingClientRect().left, event.clientY - teacherSignatureCanvas.getBoundingClientRect().top);
-        });
-    
-        teacherSignatureCanvas.addEventListener('mousemove', () => {
-            if (!isTeacherSigning) return;
-            teacherSignatureCtx.lineTo(event.clientX - teacherSignatureCanvas.getBoundingClientRect().left, event.clientY - teacherSignatureCanvas.getBoundingClientRect().top);
-            teacherSignatureCtx.stroke();
-        });
-    
-        teacherSignatureCanvas.addEventListener('mouseup', () => {
-            isTeacherSigning = false;
-        });
-    
-        teacherClearButton.addEventListener('click', () => {
-            teacherSignatureCtx.clearRect(0, 0, teacherSignatureCanvas.width, teacherSignatureCanvas.height);
-        });
-    
-        teacherSaveButton.addEventListener('click', () => {
-            const teacherSignatureImage = teacherSignatureCanvas.toDataURL('image/png');
-            document.getElementById('teacherSignatureInput').value = teacherSignatureImage;
-        });
-    
-        studentSignatureCanvas.addEventListener('mousedown', () => {
-            isStudentSigning = true;
-            studentSignatureCtx.beginPath();
-            studentSignatureCtx.moveTo(event.clientX - studentSignatureCanvas.getBoundingClientRect().left, event.clientY - studentSignatureCanvas.getBoundingClientRect().top);
-        });
-    
-        studentSignatureCanvas.addEventListener('mousemove', () => {
-            if (!isStudentSigning) return;
-            studentSignatureCtx.lineTo(event.clientX - studentSignatureCanvas.getBoundingClientRect().left, event.clientY - studentSignatureCanvas.getBoundingClientRect().top);
-            studentSignatureCtx.stroke();
-        });
-    
-        studentSignatureCanvas.addEventListener('mouseup', () => {
-            isStudentSigning = false;
-        });
-    
-        studentClearButton.addEventListener('click', () => {
-            studentSignatureCtx.clearRect(0, 0, studentSignatureCanvas.width, studentSignatureCanvas.height);
-        });
-    
-        studentSaveButton.addEventListener('click', () => {
-            const studentSignatureImage = studentSignatureCanvas.toDataURL('image/png');
-            document.getElementById('studentSignatureInput').value = studentSignatureImage;
-        });
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+
 </head>
 <body>
     <div class="container">
         <div class="header">
             <img src="{{ url_for('static', filename='Logo.png') }}" alt="Logo">
-            <h1>Demerits Form - Yellow Page</h1>
+            <h1>Demerits Form</h1>
         </div>
+        
+        
         
         <form action="/submit_form" method="POST">
             <label for="grade">Select Grade:</label>
@@ -92,30 +31,92 @@
             </select>
             <br>
             <label>Select Offense:</label>
-            <select name="offense">
-                <option value="12 LATE COMING TO SCHOOL OR SCHOOL ACTIVITIES">12 LATE COMING TO SCHOOL OR SCHOOL ACTIVITIES</option>
+            <select name="offense" multiple>
+                <option value="Continuous Misdemeanours as mentioned in Category 2">Continuous Misdemeanours as mentioned in Category 2</option>
+                <option value="Smoking during school time and on school premises">Smoking during school time and on school premises</option>
+                <option value="Continuous absence from classes or school activities">Continuous absence from classes or school activities</option>
+                <option value="Dishonesty..eg.COPYING DURING TESTS OR EXAMS, FORGING SIGNATURES">Dishonesty..eg.COPYING DURING TESTS OR EXAMS, FORGING SIGNATURES</option>
+                <option value="Placing incriminating items in another learner's bag">Placing incriminating items in another learner's bag</option>
+                <option value="HIDING A FELLOW LEARNERS PROPERTY">HIDING A FELLOW LEARNERS PROPERTY</option>
+                <option value="TRUANCY OF SEVERAL CLASSES">TRUANCY OF SEVERAL CLASSES</option>
+                <option value="USING OF FIREWORKS ON SCHOOL PREMISES">USING OF FIREWORKS ON SCHOOL PREMISES</option>
+                <option value="BEING IN POSSESSION OF OBJECTIONABLE ITEMS, OBJECTS">BEING IN POSSESSION OF OBJECTIONABLE ITEMS, OBJECTS</option>
+                <option value="INDECENT HARMFUL GRAFFITI / DRAWINGS">INDECENT HARMFUL GRAFFITI / DRAWINGS</option>
+                <option value="SERIOUS DISRUPTION OF LEARNING PROCESS IN CLASS">SERIOUS DISRUPTION OF LEARNING PROCESS IN CLASS</option>
+                <option value="TAKING PART IN A COSPIRACY TO DISRUPT THE PROPER FUNCTIONING OF THE SCHOOL BY COLLECTIVE ACTIVITIES">TAKING PART IN A COSPIRACY TO DISRUPT THE PROPER FUNCTIONING OF THE SCHOOL BY COLLECTIVE ACTIVITIES</option>
+                <option value="BEING IN POSSESSION OF A CELL PHONE">BEING IN POSSESSION OF A CELL PHONE</option>
+                <option value="FIGHTING, BULLYING">FIGHTING, BULLYING</option>
+                <option value="DISRESPECT, VERBAL ABUSE, RUDENESS, RACISM @ EDUCATORS">DISRESPECT, VERBAL ABUSE, RUDENESS, RACISM @ EDUCATORS</option>
+                <option value="RELIGIOUS/ CULTURAL PRACTICE TO DISRUPT THE PROPER FUNCTIONING OF THE SCHOOL">RELIGIOUS/ CULTURAL PRACTICE TO DISRUPT THE PROPER FUNCTIONING OF THE SCHOOL</option>
+                <option value="CONTINUOUS ABSENTEEISM OF DETENTION">CONTINUOUS ABSENTEEISM OF DETENTION</option>
+                <option value="DISRUPTING DETENTION CLASS/LEAVING DETENTION CLASS">DISRUPTING DETENTION CLASS/LEAVING DETENTION CLASS</option>
+                <option value="CONTINUOUS MISDEMEANOURS AS MENTIONED IN CATEGORY 2">CONTINUOUS MISDEMEANOURS AS MENTIONED IN CATEGORY 2</option>
+                <option value="SEXUAL HARASSMENT OR ABUSE">SEXUAL HARASSMENT OR ABUSE</option>
+                <option value="POSSESSION AND PEDDLING OF NARCOTIC SUBSTANCES">POSSESSION AND PEDDLING OF NARCOTIC SUBSTANCES</option>
+                <option value="CRIMINAL BEHAVIOUR, RAPE, ASSAULT, INTIMIDATION, DRUGS ENDANGERS LIVES, MURDER.">CRIMINAL BEHAVIOUR, RAPE, ASSAULT, INTIMIDATION, DRUGS ENDANGERS LIVES, MURDER.</option>
+                <option value="REPEATED DEFIANCE OF SCHOOL AUTHORITIES">REPEATED DEFIANCE OF SCHOOL AUTHORITIES</option>
+                <option value="IN POSSESSION OF INTOXICANTS, ALCOHOL, WEAPONS">IN POSSESSION OF INTOXICANTS, ALCOHOL, WEAPONS</option>
+                <option value="THREATENING WITH A DANGEROUS WEAPON.">THREATENING WITH A DANGEROUS WEAPON.</option>
+                <option value="INTENTIONALLY CAUSING PHYSICAL INJURY TO SOMEBODY">INTENTIONALLY CAUSING PHYSICAL INJURY TO SOMEBODY</option>
+                <option value="EXTORTION OF ANOTHER PERSON'S PROPERTY">EXTORTION OF ANOTHER PERSON'S PROPERTY</option>
+                <option value="ASSAULT">ASSAULT</option>
+                <option value="INTENTIONALLY USING A DANGEROUS WEAPON">INTENTIONALLY USING A DANGEROUS WEAPON</option>
+                <option value="CONTINUOUS DISHONESTY eg. COPYING DURING EXAMS, FORGING SIGNATURES">CONTINUOUS DISHONESTY eg. COPYING DURING EXAMS, FORGING SIGNATURES</option>
             </select>
+            <br>
+            <label>Draw Signature:</label>
+            <canvas id="signature-pad" width="300" height="150"></canvas>
+            <button type="button" id="clear-signature">Clear Signature</button>
+            <input type="hidden" name="signature" id="signature">
 
+        
             <br>
             <label>Attach Photo:</label>
             <input type="file" name="photo" accept="image/*">
-            
             <br>
-            <canvas id="teacherSignature" width="400" height="200"></canvas>
-            <button id="teacherClearButton">Clear Teacher's Signature</button>
-            <button id="teacherSaveButton">Save Teacher's Signature</button>
-
-            <canvas id="studentSignature" width="400" height="200"></canvas>
-            <button id="studentClearButton">Clear Student's Signature</button>
-            <button id="studentSaveButton">Save Student's Signature</button>
-            
-            <input type="hidden" name="teacher_signature" id="teacherSignatureInput">
-            <input type="hidden" name="student_signature" id="studentSignatureInput">
-
+            <label>Notes:</label>
+            <input type="text" name="notes">
             <br>
             <input type="submit" value="Submit">
         </form>
     </div>
+    <script>
+        // Initialize Signature Pad
+        var canvas = document.getElementById('signature-pad');
+        var signaturePad = new SignaturePad(canvas);
+    
+        // Clear Signature Button
+        var clearButton = document.getElementById('clear-signature');
+        clearButton.addEventListener('click', function () {
+            signaturePad.clear();
+        });
+        // Handle form submission
+        document.querySelector('form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Convert the signature to a data URL and set it in the hidden input field
+            var signatureInput = document.getElementById('signature');
+            signatureInput.value = signaturePad.toDataURL();
+
+            // Now you can submit the form using AJAX or any other method
+            // Example using AJAX:
+            var formData = new FormData(this);
+            fetch('/submit_form', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Handle the response if needed
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    
+        
+    </script>
+    
     <script>
         document.getElementById('grade').addEventListener('change', function () {
             var selectedGrade = this.value;
