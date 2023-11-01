@@ -357,72 +357,97 @@ def approve_submission(index):
         grade_folder = os.path.join('Demerits', f'Grade_{submission["Grade"]}')
         os.makedirs(grade_folder, exist_ok=True)
 
-        # Generate a unique filename based on name and date for the PDF
-        pdf_filename = f'{submission["Name"]}_{submission["Date"]}.pdf'
+        # Get the current time in HH:MM format
+        current_time = datetime.now().strftime("%H:%M")
+
+        logo_image = Image.open('static/Logo.png')
+        logo_image = logo_image.convert('RGB')  # Convert to RGB format (optional)
+        logo_image.save('static/Logo_non_interlaced1.png', 'PNG', optimize=True)
+
+        logo_filename = 'static/Logo_non_interlaced1.png'
+        logo_width = 130  # Width of the logo in millimeters
+        logo_height = 40  # Height of the logo in millimeters
+
+
+        # Use the current time in the filename
+        pdf_filename = f'{submission["Name"]}_{submission["Date"]}_{current_time}.pdf'
         pdf_path = os.path.join(grade_folder, pdf_filename)
 
-        # Create a PDF with fpdf
-        pdf = FPDF()
+        # Create a PDF with A4 size (210x297 mm) in landscape mode
+        pdf = FPDF(format='A4', unit='mm')
         pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)  # Automatic page break with a 15mm margin
         pdf.set_font("Arial", size=12)
+        
+        # Calculate the x-coordinate to center the logo horizontally
+        logo_x = (pdf.w - logo_width) / 2
 
-        # Add content to the PDF in a table-like format
-        pdf.cell(200, 10, txt="Demerits Form", ln=True, align='C', fill=True)  # Background fill
+        # Load and embed the logo image
+        pdf.image(logo_filename, x=logo_x, y=pdf.get_y(), w=logo_width, h=logo_height)  # Adjust position and size
+
+        # Move down to create space for the logo
+        pdf.ln(logo_height)
+
+
+        # Adjusted positions and sizes for A4 portrait
+        pdf.cell(0, 10, txt="Demerits Form", ln=True, align='C')  # Background fill
         pdf.ln(10)  # Add some space
 
-        # Create a table
+        # Left Column
         pdf.set_fill_color(200, 200, 200)  # Background fill color
-        pdf.cell(50, 10, txt="Name", border=1, fill=True)
-        pdf.cell(50, 10, txt=submission['Name'], border=1)
-        pdf.cell(50, 10, txt="Grade", border=1, fill=True)
-        pdf.cell(50, 10, txt=str(submission['Grade']), border=1)
-        pdf.ln(10)  # Move to the next line
+        column_width = 90  # Adjust the column width as needed
+        column_width1 = 25  # Adjust the column width as needed
 
-        pdf.cell(50, 10, txt="Date", border=1, fill=True)
-        pdf.cell(50, 10, txt=submission['Date'], border=1)
-        pdf.cell(50, 10, txt="Notes", border=1, fill=True)
-        pdf.cell(50, 10, txt=submission['Notes'], border=1)
-        pdf.cell(50, 10, txt="Username", border=1, fill=True)
-        pdf.cell(50, 10, txt=submission['Username'], border=1)
-        pdf.cell(50, 10, txt="Offenses", border=1, fill=True)
+        pdf.cell(column_width1, 10, txt="Name:", fill=True)
+        pdf.cell(column_width, 10, txt=submission['Name'], ln=True)
 
-        # Split offenses into separate lines and display using multi_cell
-        offenses = submission['Offenses'].split('\n')
-        for offense in offenses:
-            # Add a border to the cell
-            pdf.cell(150, 10, txt=offense, border=1, ln=True)  # Multiline cell for each offense
+        pdf.cell(column_width1, 10, txt="Grade:", fill=True)
+        pdf.cell(column_width, 10, txt=str(submission['Grade']), ln=True)
+
+        pdf.cell(column_width1, 10, txt="Date:", fill=True)
+        pdf.cell(column_width, 10, txt=submission['Date'], ln=True)
+
+        pdf.cell(column_width1, 10, txt="Notes:", fill=True)
+        pdf.cell(column_width, 10, txt=submission['Notes'], ln=True)
+
+        pdf.cell(column_width1, 10, txt="Educator:", fill=True)
+        pdf.cell(column_width, 10, txt=submission['Username'], ln=True)
+
+        pdf.cell(column_width1, 10, txt="Offenses:", fill=True)
+        pdf.cell(column_width, 10, txt=submission['Offenses'], ln=True)  # Multiline cell for offenses
 
         pdf.ln(10)  # Add some space
 
-        # Title for the student's signature
+        # Title for the student's signature cell
         pdf.set_font("Arial", style='B', size=12)
-        pdf.cell(200, 10, txt="Student Signature", ln=True, align='C')
+        pdf.cell(0, 10, txt="Student Signature", ln=True, align='C')
 
-        # Create a box for the student's signature
+        # Create a cell for the student's signature
         pdf.set_fill_color(255, 255, 255)  # White background
-        pdf.rect(10, pdf.get_y(), 190, 40, style='F')  # Rectangle for the signature
+        pdf.cell(0, 30, txt="", border=1, ln=True)  # Cell for the signature with borders
 
-        # Load and embed the student's signature image in the box
+        # Load and embed the student's signature image within the cell
         student_signature_filename = f'{submission["Name"]}_{submission["Date"]}.png'
         student_signature_path = os.path.join(signature_folder, student_signature_filename)
-        pdf.image(student_signature_path, x=15, y=pdf.get_y() + 5, w=180, h=30)  # Adjust position and size
+        pdf.image(student_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() - 25, w=0, h=20)  # Adjust position and size
 
-        # Title for the teacher's signature
+        # Title for the teacher's signature cell
         pdf.set_font("Arial", style='B', size=12)
-        pdf.cell(200, 10, txt="Teacher Signature", ln=True, align='C')
+        pdf.cell(0, 10, txt="Teacher Signature", ln=True, align='C')
 
-        # Create a box for the teacher's signature
+        # Create a cell for the teacher's signature
         pdf.set_fill_color(255, 255, 255)  # White background
-        pdf.rect(10, pdf.get_y(), 190, 40, style='F')  # Rectangle for the signature
+        pdf.cell(0, 30, txt="", border=1, ln=True)  # Cell for the signature with borders
 
-        # Load and embed the teacher's signature image in the box
+        # Load and embed the teacher's signature image within the cell
         teacher_signature_filename = f'{submission["Username"]}_{submission["Date"]}.png'
         teacher_signature_path = os.path.join(signature_folder, teacher_signature_filename)
-        pdf.image(teacher_signature_path, x=15, y=pdf.get_y() + 5, w=180, h=30)  # Adjust position and size
+        pdf.image(teacher_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() - 25, w=0, h=20)  # Adjust position and size
+
 
         # # Title for the witness's signature
         # pdf.set_font("Arial", style='B', size=12)
-        # pdf.cell(200, 10, txt="Witness Signature", ln=True, align='C')
+        # pdf.cell(20190, 10, txt="Witness Signature", ln=True, align='C')
 
         # # Create a box for the witness's signature
         # pdf.set_fill_color(255, 255, 255)  # White background
@@ -553,38 +578,38 @@ def bulk_download_directory():
     return send_file(zip_filename, as_attachment=True)
 
 
-@app.route('/csv_files', methods=['GET', 'POST'])
-def csv_files():
-    # Create a list to store the available CSV files
-    csv_file_list = []
+@app.route('/pdf_files', methods=['GET', 'POST'])
+def pdf_files():
+    # Create a list to store the available PDF files
+    pdf_file_list = []
 
-    # Specify the directory where the CSV files are located
-    csv_directory = 'Demerits'
+    # Specify the directory where the PDF files are located (same as CSV)
+    pdf_directory = 'Demerits'
 
-    # Loop through the grade directories and list CSV files
-    for grade_folder in os.listdir(csv_directory):
-        if os.path.isdir(os.path.join(csv_directory, grade_folder)):
-            grade_path = os.path.join(csv_directory, grade_folder)
-            for csv_file in os.listdir(grade_path):
-                if csv_file.endswith('.csv'):
+    # Loop through the grade directories and list PDF files
+    for grade_folder in os.listdir(pdf_directory):
+        if os.path.isdir(os.path.join(pdf_directory, grade_folder)):
+            grade_path = os.path.join(pdf_directory, grade_folder)
+            for pdf_file in os.listdir(grade_path):
+                if pdf_file.endswith('.pdf'):
                     # Construct the full file path
-                    file_path = os.path.join(grade_path, csv_file)
+                    file_path = os.path.join(grade_path, pdf_file)
                     # Create a dictionary with file information
-                    csv_info = {
+                    pdf_info = {
                         'grade_folder': grade_folder,
-                        'file_name': csv_file,
+                        'file_name': pdf_file,
                         'file_path': file_path,
                     }
-                    csv_file_list.append(csv_info)
+                    pdf_file_list.append(pdf_info)
 
     # Get unique grade values for the grade filter dropdown
-    grades = sorted(set(info['grade_folder'] for info in csv_file_list))
+    grades = sorted(set(info['grade_folder'] for info in pdf_file_list))
 
     # Get unique student names for the student filter dropdown
-    students = sorted(set(info['file_name'].split('_')[0] for info in csv_file_list))
+    students = sorted(set(info['file_name'].split('_')[0] for info in pdf_file_list))
 
     # Initialize the filtered file list
-    filtered_csv_files = csv_file_list
+    filtered_pdf_files = pdf_file_list
 
     if request.method == 'POST':
         selected_grade = request.form.get('selected_grade')
@@ -592,153 +617,40 @@ def csv_files():
 
         # Apply grade filter
         if selected_grade:
-            filtered_csv_files = [info for info in filtered_csv_files if info['grade_folder'] == selected_grade]
+            filtered_pdf_files = [info for info in filtered_pdf_files if info['grade_folder'] == selected_grade]
 
         # Apply student filter
         if selected_student:
-            filtered_csv_files = [info for info in filtered_csv_files if info['file_name'].startswith(selected_student)]
+            filtered_pdf_files = [info for info in filtered_pdf_files if info['file_name'].startswith(selected_student)]
 
-    return render_template('csv_files.html', csv_files=csv_file_list, grades=grades, students=students,
-                           filtered_csv_files=filtered_csv_files)
+    return render_template('pdf_files.html', pdf_files=pdf_file_list, grades=grades, students=students,
+                           filtered_pdf_files=filtered_pdf_files)
 
-@app.route('/filter_by_grade', methods=['POST'])
-def filter_by_grade():
-    selected_grade = request.form.get('selected_grade')
-
-    # Specify the directory where the CSV files are located
-    csv_directory = 'Demerits'
-
-    # Create a list to store the available CSV files
-    csv_file_list = []
-
-    # Loop through the grade directories and list CSV files
-    for grade_folder in os.listdir(csv_directory):
-        if os.path.isdir(os.path.join(csv_directory, grade_folder)):
-            grade_path = os.path.join(csv_directory, grade_folder)
-            for csv_file in os.listdir(grade_path):
-                if csv_file.endswith('.csv'):
-                    # Construct the full file path
-                    file_path = os.path.join(grade_path, csv_file)
-                    # Create a dictionary with file information
-                    csv_info = {
-                        'grade_folder': grade_folder,
-                        'file_name': csv_file,
-                        'file_path': file_path,
-                    }
-                    csv_file_list.append(csv_info)
-
-    # Get unique grade values for the grade filter dropdown
-    grades = sorted(set(info['grade_folder'] for info in csv_file_list))
-
-    # Get unique student names for the student filter dropdown
-    students = sorted(set(info['file_name'].split('_')[0] for info in csv_file_list))
-
-    # Apply grade filter
-    if selected_grade:
-        csv_file_list = [info for info in csv_file_list if info['grade_folder'] == selected_grade]
-
-    return render_template('csv_files.html', csv_files=csv_file_list, grades=grades, students=students,
-                           filtered_csv_files=csv_file_list)
-
-
-@app.route('/filter_by_student', methods=['POST'])
-def filter_by_student():
-    selected_student = request.form.get('selected_student')
-
-    # Specify the directory where the CSV files are located
-    csv_directory = 'Demerits'
-
-    # Create a list to store the available CSV files
-    csv_file_list = []
-
-    # Loop through the grade directories and list CSV files
-    for grade_folder in os.listdir(csv_directory):
-        if os.path.isdir(os.path.join(csv_directory, grade_folder)):
-            grade_path = os.path.join(csv_directory, grade_folder)
-            for csv_file in os.listdir(grade_path):
-                if csv_file.endswith('.csv'):
-                    # Construct the full file path
-                    file_path = os.path.join(grade_path, csv_file)
-                    # Create a dictionary with file information
-                    csv_info = {
-                        'grade_folder': grade_folder,
-                        'file_name': csv_file,
-                        'file_path': file_path,
-                    }
-                    csv_file_list.append(csv_info)
-
-    # Get unique grade values for the grade filter dropdown
-    grades = sorted(set(info['grade_folder'] for info in csv_file_list))
-
-    # Get unique student names for the student filter dropdown
-    students = sorted(set(info['file_name'].split('_')[0] for info in csv_file_list))
-
-    # Apply student filter
-    if selected_student:
-        csv_file_list = [info for info in csv_file_list if info['file_name'].startswith(selected_student)]
-
-    return render_template('csv_files.html', csv_files=csv_file_list, grades=grades, students=students,
-                           filtered_csv_files=csv_file_list)
-
-
-@app.route('/filter_by_date', methods=['POST'])
-def filter_by_date():
-    start_date = request.form.get('start_date')
-    end_date = request.form.get('end_date')
-
-    # Specify the directory where the CSV files are located
-    csv_directory = 'Demerits'
-
-    # Create a list to store the available CSV files
-    csv_file_list = []
-
-    # Loop through the grade directories and list CSV files
-    for grade_folder in os.listdir(csv_directory):
-        if os.path.isdir(os.path.join(csv_directory, grade_folder)):
-            grade_path = os.path.join(csv_directory, grade_folder)
-            for csv_file in os.listdir(grade_path):
-                if csv_file.endswith('.csv'):
-                    # Construct the full file path
-                    file_path = os.path.join(grade_path, csv_file)
-                    # Check if the file matches the date range
-                    file_date = csv_file.split('_')[1]
-                    if start_date <= file_date <= end_date:
-                        # Create a dictionary with file information
-                        csv_info = {
-                            'grade_folder': grade_folder,
-                            'file_name': csv_file,
-                            'file_path': file_path,
-                        }
-                        csv_file_list.append(csv_info)
-
-    # Get unique grade values for the grade filter dropdown
-    grades = sorted(set(info['grade_folder'] for info in csv_file_list))
-
-    # Get unique student names for the student filter dropdown
-    students = sorted(set(info['file_name'].split('_')[0] for info in csv_file_list))
-
-    return render_template('csv_files.html', csv_files=csv_file_list, grades=grades, students=students,
-                           filtered_csv_files=csv_file_list)
-
-@app.route('/bulk_download_csv', methods=['POST'])
-def bulk_download_csv():
+@app.route('/bulk_download_pdf', methods=['POST'])
+def bulk_download_pdf():
     selected_files = request.form.getlist('selected_files')
 
     # Check if any files are selected for download
     if not selected_files:
         return "No files selected for download."
 
-    # Create a zip file containing the selected CSV files
-    zip_filename = 'bulk_download.zip'
+    # Specify the directory where the PDF files are located
+    pdf_directory = 'Demerits'
+
+    # Create a zip file containing the selected PDF files
+    zip_filename = 'bulk_download_pdf.zip'
     with ZipFile(zip_filename, 'w') as zipf:
-        for file_path in selected_files:
+        for file_name in selected_files:
+            # Construct the full file path
+            file_path = os.path.join(pdf_directory, file_name)
+            
             # Make sure the selected file exists and is allowed for download
             if os.path.exists(file_path):
-                zipf.write(file_path, os.path.basename(file_path))
+                zipf.write(file_path, file_name)  # Use file_name as the archive name
 
     # Send the zip file for download
     return send_file(zip_filename, as_attachment=True)
 
 
 if __name__ == '__main__':
-    app.run(host='192.168.10.43', port=8080)
+    app.run(host='172.20.10.3', port=8080)

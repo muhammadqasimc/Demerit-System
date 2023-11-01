@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Files</title>
+</head>
+<body>
+    <h1>PDF Files</h1>
+    
+    <!-- Filter Form -->
+    <form method="POST">
+        <label for="selected_grade">Filter by Grade:</label>
+        <select name="selected_grade" id="selected_grade">
+            <option value="">All Grades</option>
+            {% for grade in grades %}
+                <option value="{{ grade }}">{{ grade }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="selected_student">Filter by Student:</label>
+        <select name="selected_student" id="selected_student">
+            <option value="">All Students</option>
+            {% for student in students %}
+                <option value="{{ student }}">{{ student }}</option>
+            {% endfor %}
+        </select>
+
+        <input type="submit" value="Apply Filters">
+    </form>
+
+    <!-- List of PDF Files -->
+    <table>
+        <thead>
+            <tr>
+                <th>Grade</th>
+                <th>Student Name</th>
+                <th>File Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pdf in filtered_pdf_files %}
+                <tr>
+                    <td>{{ pdf['grade_folder'] }}</td>
+                    <td>{{ pdf['file_name'].split('_')[0] }}</td>
+                    <td>{{ pdf['file_name'] }}</td>
+                    <td>
+                        <a href="{{ pdf['file_path'] }}" target="_blank">View</a> |
+                        <input type="checkbox" name="selected_files" value="{{ pdf['file_name'] }}">
+
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Bulk Download Button -->
+    <form method="POST" action="/bulk_download_pdf">
+        <input type="submit" value="Bulk Download Selected PDFs">
+    </form>
+</body>
+</html>

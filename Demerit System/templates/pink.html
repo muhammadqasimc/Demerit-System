@@ -5,8 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demerits Form</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.css">
+    <style>
+        /* Your additional CSS styles here */
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
 
+        .header {
+            background-color: #f2f2f2;
+            padding: 10px;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        /* Signature canvas styles */
+        canvas {
+            border: 1px solid #000;
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+        }
+
+        /* Buttons inside the modal */
+        .modal-content button {
+            background-color: #008CBA;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        /* Clear button style */
+        .modal-content #clearSignature {
+            background-color: #f44336;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -14,9 +71,7 @@
             <img src="{{ url_for('static', filename='Logo.png') }}" alt="Logo">
             <h1>Demerits Form</h1>
         </div>
-        
-        
-        
+
         <form action="/submit_form" method="POST">
             <label for="grade">Select Grade:</label>
             <select id="grade" name="grade">
@@ -31,92 +86,161 @@
             </select>
             <br>
             <label>Select Offense:</label>
-            <select name="offense" multiple>
-                <option value="Continuous Misdemeanours as mentioned in Category 2">Continuous Misdemeanours as mentioned in Category 2</option>
-                <option value="Smoking during school time and on school premises">Smoking during school time and on school premises</option>
-                <option value="Continuous absence from classes or school activities">Continuous absence from classes or school activities</option>
-                <option value="Dishonesty..eg.COPYING DURING TESTS OR EXAMS, FORGING SIGNATURES">Dishonesty..eg.COPYING DURING TESTS OR EXAMS, FORGING SIGNATURES</option>
-                <option value="Placing incriminating items in another learner's bag">Placing incriminating items in another learner's bag</option>
-                <option value="HIDING A FELLOW LEARNERS PROPERTY">HIDING A FELLOW LEARNERS PROPERTY</option>
-                <option value="TRUANCY OF SEVERAL CLASSES">TRUANCY OF SEVERAL CLASSES</option>
-                <option value="USING OF FIREWORKS ON SCHOOL PREMISES">USING OF FIREWORKS ON SCHOOL PREMISES</option>
-                <option value="BEING IN POSSESSION OF OBJECTIONABLE ITEMS, OBJECTS">BEING IN POSSESSION OF OBJECTIONABLE ITEMS, OBJECTS</option>
-                <option value="INDECENT HARMFUL GRAFFITI / DRAWINGS">INDECENT HARMFUL GRAFFITI / DRAWINGS</option>
-                <option value="SERIOUS DISRUPTION OF LEARNING PROCESS IN CLASS">SERIOUS DISRUPTION OF LEARNING PROCESS IN CLASS</option>
-                <option value="TAKING PART IN A COSPIRACY TO DISRUPT THE PROPER FUNCTIONING OF THE SCHOOL BY COLLECTIVE ACTIVITIES">TAKING PART IN A COSPIRACY TO DISRUPT THE PROPER FUNCTIONING OF THE SCHOOL BY COLLECTIVE ACTIVITIES</option>
-                <option value="BEING IN POSSESSION OF A CELL PHONE">BEING IN POSSESSION OF A CELL PHONE</option>
+            <select name="offense">
+                <option value="BEING IN POSSESSION OF A CELLPHONE/UPLOADING VIDEOS TO SOCIAL MEDIA">BEING IN POSSESSION OF A CELLPHONE/UPLOADING VIDEOS TO SOCIAL MEDIA</option>
                 <option value="FIGHTING, BULLYING">FIGHTING, BULLYING</option>
-                <option value="DISRESPECT, VERBAL ABUSE, RUDENESS, RACISM @ EDUCATORS">DISRESPECT, VERBAL ABUSE, RUDENESS, RACISM @ EDUCATORS</option>
-                <option value="RELIGIOUS/ CULTURAL PRACTICE TO DISRUPT THE PROPER FUNCTIONING OF THE SCHOOL">RELIGIOUS/ CULTURAL PRACTICE TO DISRUPT THE PROPER FUNCTIONING OF THE SCHOOL</option>
                 <option value="CONTINUOUS ABSENTEEISM OF DETENTION">CONTINUOUS ABSENTEEISM OF DETENTION</option>
                 <option value="DISRUPTING DETENTION CLASS/LEAVING DETENTION CLASS">DISRUPTING DETENTION CLASS/LEAVING DETENTION CLASS</option>
-                <option value="CONTINUOUS MISDEMEANOURS AS MENTIONED IN CATEGORY 2">CONTINUOUS MISDEMEANOURS AS MENTIONED IN CATEGORY 2</option>
-                <option value="SEXUAL HARASSMENT OR ABUSE">SEXUAL HARASSMENT OR ABUSE</option>
-                <option value="POSSESSION AND PEDDLING OF NARCOTIC SUBSTANCES">POSSESSION AND PEDDLING OF NARCOTIC SUBSTANCES</option>
-                <option value="CRIMINAL BEHAVIOUR, RAPE, ASSAULT, INTIMIDATION, DRUGS ENDANGERS LIVES, MURDER.">CRIMINAL BEHAVIOUR, RAPE, ASSAULT, INTIMIDATION, DRUGS ENDANGERS LIVES, MURDER.</option>
-                <option value="REPEATED DEFIANCE OF SCHOOL AUTHORITIES">REPEATED DEFIANCE OF SCHOOL AUTHORITIES</option>
-                <option value="IN POSSESSION OF INTOXICANTS, ALCOHOL, WEAPONS">IN POSSESSION OF INTOXICANTS, ALCOHOL, WEAPONS</option>
-                <option value="THREATENING WITH A DANGEROUS WEAPON.">THREATENING WITH A DANGEROUS WEAPON.</option>
-                <option value="INTENTIONALLY CAUSING PHYSICAL INJURY TO SOMEBODY">INTENTIONALLY CAUSING PHYSICAL INJURY TO SOMEBODY</option>
-                <option value="EXTORTION OF ANOTHER PERSON'S PROPERTY">EXTORTION OF ANOTHER PERSON'S PROPERTY</option>
-                <option value="ASSAULT">ASSAULT</option>
-                <option value="INTENTIONALLY USING A DANGEROUS WEAPON">INTENTIONALLY USING A DANGEROUS WEAPON</option>
-                <option value="CONTINUOUS DISHONESTY eg. COPYING DURING EXAMS, FORGING SIGNATURES">CONTINUOUS DISHONESTY eg. COPYING DURING EXAMS, FORGING SIGNATURES</option>
+                <option value="VANDALISM OF SCHOOL PROPERTY/LEARNER/EDUCATOR">VANDALISM OF SCHOOL PROPERTY/LEARNER/EDUCATOR</option>
+                <option value="CONTINUOUS MISDEMEANORS AS MENTIONED IN CATEGORY 1">CONTINUOUS MISDEMEANORS AS MENTIONED IN CATEGORY 1</option>
+                <option value="BEING IN POSSESSION OF OBJECTIONABLE ITEMS, OBJECTS">BEING IN POSSESSION OF OBJECTIONABLE ITEMS, OBJECTS</option>
+                <option value="DISRESPECT/VERBAL ABUSE/ RUDENESS/RACISM @ EDUCATOR">DISRESPECT/VERBAL ABUSE/ RUDENESS/RACISM @ EDUCATOR</option>
+                <option value="SERIOUS DISRUPTION OF LEARNING PROCESS IN CLASS">SERIOUS DISRUPTION OF LEARNING PROCESS IN CLASS</option>
+                <option value="TAKING PART IN A CONSPIRACY TO DISRUPT THE PROPER FUNCTIONING OF SCHOOL BY COLLECTIVE ACTIVITIES">TAKING PART IN A CONSPIRACY TO DISRUPT THE PROPER FUNCTIONING OF SCHOOL BY COLLECTIVE ACTIVITIES</option>
+                <option value="DISHONESTY e.g COPYING DURING TEST OR EXAMS, FORGING SIGNATURES">DISHONESTY e.g COPYING DURING TEST OR EXAMS, FORGING SIGNATURES</option>
+                <option value="IN POSSESSION OF INTOXICANTS ALCOHOL/DRUGS/ TESTED POSITIVE">IN POSSESSION OF INTOXICANTS ALCOHOL/DRUGS/ TESTED POSITIVE</option>
+                <option value="REPEATED DEFIANCE OF SCHOOL AUTHORITIES (EMOTIONAL ABUSE)">REPEATED DEFIANCE OF SCHOOL AUTHORITIES (EMOTIONAL ABUSE)</option>
+                <option value="INTENTIONAL CAUSING PHYSICAL INJURY TO SOMEBODY">INTENTIONAL CAUSING PHYSICAL INJURY TO SOMEBODY</option>
+                <option value="SERIOUS VANDELISM OF SCHOOL PROPERTY/LEARNER/EDUCATOR">SERIOUS VANDELISM OF SCHOOL PROPERTY/LEARNER/EDUCATOR</option>
+                <option value="STEALING FORM A LEARNER/EDUCATOR">STEALING FORM A LEARNER/EDUCATOR</option>
             </select>
+            
+            
             <br>
-            <label>Draw Signature:</label>
-            <canvas id="signature-pad" width="300" height="150"></canvas>
-            <button type="button" id="clear-signature">Clear Signature</button>
-            <input type="hidden" name="signature" id="signature">
+            <label>Draw Student Signature:</label>
+            <button type="button" id="openStudentSignatureModal">Student Signature</button>
+            <input type="hidden" name="student_signature" id="student_signature">
 
-        
+            <label>Draw Teacher Signature:</label>
+            <button type="button" id="openTeacherSignatureModal">Teacher Signature</button>
+            <input type="hidden" name="teacher_signature" id="teacher_signature">
+
+            <label>Draw Witness Signature:</label>
+            <button type="button" id="openWitnessSignatureModal">Witness Signature</button>
+            <input type="hidden" name="witness_signature" id="witness_signature">
+
             <br>
             <label>Attach Photo:</label>
             <input type="file" name="photo" accept="image/*">
             <br>
             <label>Notes:</label>
-            <input type="text" name="notes">
+            <input type="text" name="notes" id="notes">
             <br>
             <input type="submit" value="Submit">
         </form>
+
+        <!-- Student Signature Modal -->
+        <div id="studentSignatureModal" class="modal">
+            <div class="modal-content">
+                <h2>Student Signature</h2>
+                <canvas id="studentSignatureCanvas" width="300" height="150"></canvas>
+                <button id="clearStudentSignature">Clear Signature</button>
+                <button id="saveStudentSignature">Save Signature</button>
+            </div>
+        </div>
+
+        <!-- Teacher Signature Modal -->
+        <div id="teacherSignatureModal" class="modal">
+            <div class="modal-content">
+                <h2>Teacher Signature</h2>
+                <canvas id="teacherSignatureCanvas" width="300" height="150"></canvas>
+                <button id="clearTeacherSignature">Clear Signature</button>
+                <button id="saveTeacherSignature">Save Signature</button>
+            </div>
+        </div>
+
+        <!-- Witness Signature Modal -->
+        <div id="witnessSignatureModal" class="modal">
+            <div class="modal-content">
+                <h2>Witness Signature</h2>
+                <canvas id="witnessSignatureCanvas" width="300" height="150"></canvas>
+                <button id="clearWitnessSignature">Clear Signature</button>
+                <button id="saveWitnessSignature">Save Signature</button>
+            </div>
+        </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
     <script>
-        // Initialize Signature Pad
-        var canvas = document.getElementById('signature-pad');
-        var signaturePad = new SignaturePad(canvas);
-    
-        // Clear Signature Button
-        var clearButton = document.getElementById('clear-signature');
-        clearButton.addEventListener('click', function () {
-            signaturePad.clear();
-        });
-        // Handle form submission
-        document.querySelector('form').addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent the default form submission
+        // JavaScript code to handle signature modals and capture
+        const studentSignatureModal = document.getElementById("studentSignatureModal");
+        const teacherSignatureModal = document.getElementById("teacherSignatureModal");
+        const witnessSignatureModal = document.getElementById("witnessSignatureModal");
 
-            // Convert the signature to a data URL and set it in the hidden input field
-            var signatureInput = document.getElementById('signature');
-            signatureInput.value = signaturePad.toDataURL();
+        const openStudentSignatureModalBtn = document.getElementById("openStudentSignatureModal");
+        const openTeacherSignatureModalBtn = document.getElementById("openTeacherSignatureModal");
+        const openWitnessSignatureModalBtn = document.getElementById("openWitnessSignatureModal");
 
-            // Now you can submit the form using AJAX or any other method
-            // Example using AJAX:
-            var formData = new FormData(this);
-            fetch('/submit_form', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Handle the response if needed
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+        const studentSignatureCanvas = new SignaturePad(document.getElementById("studentSignatureCanvas"));
+        const teacherSignatureCanvas = new SignaturePad(document.getElementById("teacherSignatureCanvas"));
+        const witnessSignatureCanvas = new SignaturePad(document.getElementById("witnessSignatureCanvas"));
+
+        const clearStudentSignatureBtn = document.getElementById("clearStudentSignature");
+        const clearTeacherSignatureBtn = document.getElementById("clearTeacherSignature");
+        const clearWitnessSignatureBtn = document.getElementById("clearWitnessSignature");
+
+        const saveStudentSignatureBtn = document.getElementById("saveStudentSignature");
+        const saveTeacherSignatureBtn = document.getElementById("saveTeacherSignature");
+        const saveWitnessSignatureBtn = document.getElementById("saveWitnessSignature");
+
+        // Open the student signature modal
+        openStudentSignatureModalBtn.addEventListener("click", function () {
+            studentSignatureModal.style.display = "block";
         });
-    
-        
+
+        // Open the teacher signature modal
+        openTeacherSignatureModalBtn.addEventListener("click", function () {
+            teacherSignatureModal.style.display = "block";
+        });
+
+        // Open the witness signature modal
+        openWitnessSignatureModalBtn.addEventListener("click", function () {
+            witnessSignatureModal.style.display = "block";
+        });
+
+        // Close modals when clear or save buttons are clicked
+        clearStudentSignatureBtn.addEventListener("click", function () {
+            studentSignatureCanvas.clear();
+            studentSignatureModal.style.display = "none";
+        });
+
+        clearTeacherSignatureBtn.addEventListener("click", function () {
+            teacherSignatureCanvas.clear();
+            teacherSignatureModal.style.display = "none";
+        });
+
+        clearWitnessSignatureBtn.addEventListener("click", function () {
+            witnessSignatureCanvas.clear();
+            witnessSignatureModal.style.display = "none";
+        });
+
+        // Handle signature saving for student
+        saveStudentSignatureBtn.addEventListener("click", function () {
+            const studentSignatureDataUrl = studentSignatureCanvas.toDataURL();
+            // Set the student's signature data in the hidden input field
+            document.getElementById("student_signature").value = studentSignatureDataUrl;
+            // Close the student signature modal
+            studentSignatureModal.style.display = "none";
+        });
+
+        // Handle signature saving for teacher
+        saveTeacherSignatureBtn.addEventListener("click", function () {
+            const teacherSignatureDataUrl = teacherSignatureCanvas.toDataURL();
+            // Set the teacher's signature data in the hidden input field
+            document.getElementById("teacher_signature").value = teacherSignatureDataUrl;
+            // Close the teacher signature modal
+            teacherSignatureModal.style.display = "none";
+        });
+
+        // Handle signature saving for witness
+        saveWitnessSignatureBtn.addEventListener("click", function () {
+            const witnessSignatureDataUrl = witnessSignatureCanvas.toDataURL();
+            // Set the witness's signature data in the hidden input field
+            document.getElementById("witness_signature").value = witnessSignatureDataUrl;
+            // Close the witness signature modal
+            witnessSignatureModal.style.display = "none";
+        });
     </script>
-    
     <script>
         document.getElementById('grade').addEventListener('change', function () {
             var selectedGrade = this.value;
@@ -141,6 +265,5 @@
                 });
         });
     </script>
-    
 </body>
 </html>
