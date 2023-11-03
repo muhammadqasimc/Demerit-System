@@ -18,6 +18,10 @@ from reportlab.pdfgen import canvas  # Add this import statement
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
+from werkzeug.utils import secure_filename
+from PIL import Image as PILImage
+
+
 
 from fpdf import FPDF
 
@@ -30,9 +34,18 @@ app = Flask(__name__)
 STUDENT_DATA_CSV = 'student_data.csv'
 PENDING_SUBMISSIONS_CSV = 'pending_submissions.csv'
 
+UPLOAD_FOLDER = "uploads"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+# Ensure the upload folder exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+
 # Lists to store submissions
 submissions_pending_approval = []
 approved_submissions = []
+
 
 # Declare the df variable as global
 df = None
@@ -272,70 +285,97 @@ def get_names_by_grade(selected_grade):
 # Define the directory where signature images will be saved
 signature_folder = 'signatures'
 
-@app.route('/submit_form', methods=['POST'])
+@app.route('/submit_form', methods=["GET", 'POST'])
 def submit_form():
-    selected_grade = request.form['grade']
-    selected_name = request.form['name']
-    selected_offenses = request.form.getlist('offense')
-    current_date = datetime.now().strftime('%Y-%m-%d')
-    notes = request.form['notes']  # Retrieve the notes from the form
-    username = session['username']
+        if request.method == "POST":
+            photo = request.files["photo"]
 
-     # Handle the student's signature
-    student_signature_data_url = request.form['student_signature']
-    if student_signature_data_url:
-        # Generate a unique filename for the student's signature image
-        student_signature_filename = f'{selected_name}_{current_date}.png'
-        student_signature_path = os.path.join(signature_folder, student_signature_filename)
+            if photo:
+                # Retrieve the selected name from the form data
+                selected_name = request.form["name"]
 
-        # Convert the data URL back to an image and save it as a PNG
-        student_signature_image_data = student_signature_data_url.split(',')[1]
-        student_signature_image_binary = base64.b64decode(student_signature_image_data)
-        with open(student_signature_path, 'wb') as student_signature_file:
-            student_signature_file.write(student_signature_image_binary)
+                # Get the current date in the format YYYY-MM-DD
+                current_date = datetime.now().strftime("%Y-%m-%d")
 
-    # Handle the teacher's signature (similar code as above)
-    teacher_signature_data_url = request.form['teacher_signature']
-    if teacher_signature_data_url:
-        teacher_signature_filename = f'{username}_{current_date}.png'
-        teacher_signature_path = os.path.join(signature_folder, teacher_signature_filename)
-        teacher_signature_image_data = teacher_signature_data_url.split(',')[1]
-        teacher_signature_image_binary = base64.b64decode(teacher_signature_image_data)
-        with open(teacher_signature_path, 'wb') as teacher_signature_file:
-            teacher_signature_file.write(teacher_signature_image_binary)
+                # Combine the selected name and current date to create the filename
+                raw_filename = f"{selected_name}_{current_date}.jpg"
+                filename = secure_filename(raw_filename)
+
+                photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
+                # Save the uploaded photo to the specified directory
+                photo.save(photo_path)
+
+                
+        selected_grade = request.form['grade']
+        selected_name = request.form['name']
+        selected_offenses = request.form.getlist('offense')
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        notes = request.form['notes']  # Retrieve the notes from the form
+        username = session['username']
+        
+        # Handle the student's signature
+        student_signature_data_url = request.form['student_signature']
+        if student_signature_data_url:
+            # Generate a unique filename for the student's signature image
+            student_signature_filename = f'{selected_name}_{current_date}.png'
+            student_signature_path = os.path.join(signature_folder, student_signature_filename)
+
+            # Convert the data URL back to an image and save it as a PNG
+            student_signature_image_data = student_signature_data_url.split(',')[1]
+            student_signature_image_binary = base64.b64decode(student_signature_image_data)
+            with open(student_signature_path, 'wb') as student_signature_file:
+                student_signature_file.write(student_signature_image_binary)
+
+        # Handle the teacher's signature (similar code as above)
+        teacher_signature_data_url = request.form['teacher_signature']
+        if teacher_signature_data_url:
+            teacher_signature_filename = f'{username}_{current_date}.png'
+            teacher_signature_path = os.path.join(signature_folder, teacher_signature_filename)
+            teacher_signature_image_data = teacher_signature_data_url.split(',')[1]
+            teacher_signature_image_binary = base64.b64decode(teacher_signature_image_data)
+            with open(teacher_signature_path, 'wb') as teacher_signature_file:
+                teacher_signature_file.write(teacher_signature_image_binary)
 
 
-    # Handle the witness's signature (similar code as above)
-    witness_signature_data_url = request.form['witness_signature']
-    if witness_signature_data_url:
-        witness_signature_filename = f'witness_signature_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'
-        witness_signature_path = os.path.join(signature_folder, witness_signature_filename)
-        witness_signature_image_data = witness_signature_data_url.split(',')[1]
-        witness_signature_image_binary = base64.b64decode(witness_signature_image_data)
-        with open(witness_signature_path, 'wb') as witness_signature_file:
-            witness_signature_file.write(witness_signature_image_binary)
+        # Handle the witness's signature (similar code as above)
+        witness_signature_data_url = request.form['witness_signature']
+        if witness_signature_data_url:
+            witness_signature_filename = f'witness_signature_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'
+            witness_signature_path = os.path.join(signature_folder, witness_signature_filename)
+            witness_signature_image_data = witness_signature_data_url.split(',')[1]
+            witness_signature_image_binary = base64.b64decode(witness_signature_image_data)
+            with open(witness_signature_path, 'wb') as witness_signature_file:
+                witness_signature_file.write(witness_signature_image_binary)
 
 
-    # Create a new submission dictionary
-    new_submission = {
-        'Name': selected_name,
-        'Grade': selected_grade,
-        'Date': current_date,
-        'Offenses': ', '.join(selected_offenses),
-        'Notes': notes,
-        'Username' : username
-    }
+        # Create a new submission dictionary
+        new_submission = {
+            'Name': selected_name,
+            'Grade': selected_grade,
+            'Date': current_date,
+            'Offenses': ', '.join(selected_offenses),
+            'Notes': notes,
+            'Username' : username
+        }
 
-    # Append the submission to the pending approval list
-    submissions_pending_approval.append(new_submission)
+        # Append the submission to the pending approval list
+        submissions_pending_approval.append(new_submission)
 
-    # Save pending submissions to the CSV file
-    save_pending_submissions(submissions_pending_approval)
+        # Save pending submissions to the CSV file
+        save_pending_submissions(submissions_pending_approval)
 
-    # Notify with a sound
-    playsound('static/ding.mp3')
+        # Notify with a sound
+        playsound('static/ding.mp3')
 
-    return redirect(url_for('index'))
+        return redirect(url_for('index'))
+    
+    
+
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/admin')
 def admin():
@@ -370,7 +410,8 @@ def approve_submission(index):
 
 
         # Use the current time in the filename
-        pdf_filename = f'{submission["Name"]}_{submission["Date"]}_{current_time}.pdf'
+        pdf_filename = f'{submission["Name"].replace(" ", "_")}_{submission["Date"]}_{current_time}.pdf'
+
         pdf_path = os.path.join(grade_folder, pdf_filename)
 
         # Create a PDF with A4 size (210x297 mm) in landscape mode
@@ -457,6 +498,37 @@ def approve_submission(index):
         # witness_signature_filename = f'witness_signature_{submission["Date"]}.png'
         # witness_signature_path = os.path.join(signature_folder, witness_signature_filename)
         # pdf.image(witness_signature_path, x=15, y=pdf.get_y() + 5, w=180, h=30)  # Adjust position and size
+
+
+        # Extract the image filename from the submission data
+        image_filename = f'{submission["Name"].replace(" ", "_")}_{submission["Date"]}.jpg'
+        image_path = os.path.join(app.config["UPLOAD_FOLDER"], image_filename)
+
+
+        # Check if the image exists (it's good to have a safety check)
+        if os.path.exists(image_path):
+            # Add a new page to the PDF
+            pdf.add_page()
+
+            # Use PIL to get image dimensions
+            with PILImage.open(image_path) as img:
+                img_width, img_height = img.size
+
+            # A4 dimensions in points
+            a4_width_mm = 210
+            a4_height_mm = 297
+
+            # Calculate the scaling factor
+            width_scale = a4_width_mm / img_width
+            height_scale = a4_height_mm / img_height
+            scale_factor = min(width_scale, height_scale)
+
+            # Calculate the new image dimensions
+            new_img_width = img_width * scale_factor
+            new_img_height = img_height * scale_factor
+
+            # Embed the image in the new page
+            pdf.image(image_path, x=(a4_width_mm - new_img_width) / 2, y=(a4_height_mm - new_img_height) / 2, w=new_img_width, h=new_img_height)
 
         # Save the PDF to the file
         pdf.output(pdf_path)
@@ -652,5 +724,5 @@ def bulk_download_pdf():
     return send_file(zip_filename, as_attachment=True)
 
 
-if __name__ == '__main__':
-    app.run(host='172.20.10.3', port=8080)
+# if __name__ == '__main__':
+#     app.run(host='192.168.10.35', port=8080)
