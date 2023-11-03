@@ -2,14 +2,14 @@
     "version": 2,
     "builds": [
       {
-        "src": "Demerit Sytem/demerit.py",
+        "src": "Demerit System/demerit.py",
         "use": "@vercel/python"
       }
     ],
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "Demerit Sytem/demerit.py"
+        "dest": "Demerit System/demerit.py"
       }
     ]
   }
