@@ -1,15 +1,5 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "./Demerit System/demerit.py",
-        "use": "@vercel/python"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "Demerit System/demerit.py"
-      }
-    ]
-  }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/templates/index" }
+  ]
+}
