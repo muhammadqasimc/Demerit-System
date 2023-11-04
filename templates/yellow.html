@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Demerits Form</title>
+<link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.css" rel="stylesheet"/>
+<style>
+        /* Your additional CSS styles here */
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #f2f2f2;
+            padding: 10px;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        /* Signature canvas styles */
+        canvas {
+            border: 1px solid #000;
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+        }
+
+        /* Buttons inside the modal */
+        .modal-content button {
+            background-color: #008CBA;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        /* Clear button style */
+        .modal-content #clearSignature {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<img alt="Logo" src="{{ url_for('static', filename='Logo.png') }}"/>
+<h1>Demerits Form</h1>
+</div>
+<form action="/submit_form" enctype="multipart/form-data" method="POST">
+<label for="grade">Select Grade:</label>
+<select id="grade" name="grade">
+                {% for grade in grades %}
+                    <option value="{{ grade }}">{{ grade }}</option>
+                {% endfor %}
+            </select>
+<br/>
+<label for="name">Select Name:</label>
+<select id="name" name="name">
+<option value="">-- Select a grade first --</option>
+</select>
+<br/>
+<label>Select Offense:</label>
+<select name="offense"><option value="NEGLECTING HOMEWORK/HOMEWORK NOT DONE">NEGLECTING HOMEWORK/HOMEWORK NOT DONE</option><option value="RUDE TOWARDS EDUCATOR/LEARNER/STAFF MEMBER">RUDE TOWARDS EDUCATOR/LEARNER/STAFF MEMBER</option><option value="TEXT BOOKS &amp; SCRIPTS NOT AVAILABLE">TEXT BOOKS &amp; SCRIPTS NOT AVAILABLE</option><option value="DISOBEDIENCE, NOT LISTENING IN CLASS">DISOBEDIENCE, NOT LISTENING IN CLASS</option><option value="LITTERING, EATING OR DRINKING IN CLASS/CHEWING IN CLASS">LITTERING, EATING OR DRINKING IN CLASS/CHEWING IN CLASS</option><option value="LATE COMING (AFTER 3 MINUTES) TO CLASS">LATE COMING (AFTER 3 MINUTES) TO CLASS</option><option value="COPYING OF WORK OR ALLOWING OTHER LEARNER TO COPY">COPYING OF WORK OR ALLOWING OTHER LEARNER TO COPY</option><option value="FORBIDDEN PLACES E.G GIRL IN BOY'S TOILET">FORBIDDEN PLACES E.G GIRL IN BOY'S TOILET</option><option value="DISOBEYING APPEARANCE &amp; SCHOOL UNIFORM RULES">DISOBEYING APPEARANCE &amp; SCHOOL UNIFORM RULES</option><option value="DISRUPTING CLASS/TEACHING">DISRUPTING CLASS/TEACHING</option><option value="FOUL LANGUAGE e.g TOWARDS EDUCATOR/LEARNER/STAFF">FOUL LANGUAGE e.g TOWARDS EDUCATOR/LEARNER/STAFF</option><option value="NEGLECTING SCHOOL REPORTS/BOOKS TO BE SIGNED BY PARENTS ETC">NEGLECTING SCHOOL REPORTS/BOOKS TO BE SIGNED BY PARENTS ETC</option><option value="NOT ATTENDING RELIEF CLASS">NOT ATTENDING RELIEF CLASS</option><option value="TASK NOT SUBMITTED/CLASS WORK BOOK/ WORK NOT UP TO DATE">TASK NOT SUBMITTED/CLASS WORK BOOK/ WORK NOT UP TO DATE</option><option value="LEAVING CLASS WITHOUT PERMISSION">LEAVING CLASS WITHOUT PERMISSION</option><option value="WRITING IN TEXT BOOK/BOOKS NOT COVERED">WRITING IN TEXT BOOK/BOOKS NOT COVERED</option><option value="BUNKING CLASS">BUNKING CLASS</option><option value="DISHONESTY WITH MINOR CONSEQUENCES">DISHONESTY WITH MINOR CONSEQUENCES</option><option value="SLEEPING IN CLASS">SLEEPING IN CLASS</option><option value="PURPOSEFUL ABSENCE FROM SCHOOL /SCHOOL FUNCTIONS ">PURPOSEFUL ABSENCE FROM SCHOOL /SCHOOL FUNCTIONS </option><option value="PLAYING SOCCER WITHOUT PRIOR CONSENT/IN THE ASSEMBLY AREA">PLAYING SOCCER WITHOUT PRIOR CONSENT/IN THE ASSEMBLY AREA</option><option value="PLAYING SOCCER WITHOUT CONSENT DURING CLASS TIME">PLAYING SOCCER WITHOUT CONSENT DURING CLASS TIME</option><option value="MINOR TROUBLING OTHER LEARNER/S">MINOR TROUBLING OTHER LEARNER/S</option><option value="NECKING ON SCHOOL PREMISES, SCHOOL FUNCTIONS">NECKING ON SCHOOL PREMISES, SCHOOL FUNCTIONS</option><option value="ENTERING CLASS WITHOUT PERMISSION">ENTERING CLASS WITHOUT PERMISSION</option></select>
+<br/>
+<label>Draw Student Signature:</label>
+<button id="openStudentSignatureModal" type="button">Student Signature</button>
+<input id="student_signature" name="student_signature" type="hidden"/>
+<label>Draw Teacher Signature:</label>
+<button id="openTeacherSignatureModal" type="button">Teacher Signature</button>
+<input id="teacher_signature" name="teacher_signature" type="hidden"/>
+<label>Draw Witness Signature:</label>
+<button id="openWitnessSignatureModal" type="button">Witness Signature</button>
+<input id="witness_signature" name="witness_signature" type="hidden"/>
+<br/>
+<label>Attach Photo:</label>
+<input accept="image/*" name="photo" type="file"/>
+<br/>
+<label>Notes:</label>
+<input id="notes" name="notes" type="text"/>
+<br/>
+<input type="submit" value="Submit"/>
+</form>
+<!-- Student Signature Modal -->
+<div class="modal" id="studentSignatureModal">
+<div class="modal-content">
+<h2>Student Signature</h2>
+<canvas height="150" id="studentSignatureCanvas" width="300"></canvas>
+<button id="clearStudentSignature">Clear Signature</button>
+<button id="saveStudentSignature">Save Signature</button>
+</div>
+</div>
+<!-- Teacher Signature Modal -->
+<div class="modal" id="teacherSignatureModal">
+<div class="modal-content">
+<h2>Teacher Signature</h2>
+<canvas height="150" id="teacherSignatureCanvas" width="300"></canvas>
+<button id="clearTeacherSignature">Clear Signature</button>
+<button id="saveTeacherSignature">Save Signature</button>
+</div>
+</div>
+<!-- Witness Signature Modal -->
+<div class="modal" id="witnessSignatureModal">
+<div class="modal-content">
+<h2>Witness Signature</h2>
+<canvas height="150" id="witnessSignatureCanvas" width="300"></canvas>
+<button id="clearWitnessSignature">Clear Signature</button>
+<button id="saveWitnessSignature">Save Signature</button>
+</div>
+</div>
+</div>
+
+<script>
+    const offensesDataYellow = {'NEGLECTING HOMEWORK/HOMEWORK NOT DONE': {'Id': 139, 'Level': 1, 'Code': '1-00', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'RUDE TOWARDS EDUCATOR/LEARNER/STAFF MEMBER': {'Id': 140, 'Level': 1, 'Code': '2', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'TEXT BOOKS & SCRIPTS NOT AVAILABLE': {'Id': 141, 'Level': 1, 'Code': '3', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'DISOBEDIENCE, NOT LISTENING IN CLASS': {'Id': 142, 'Level': 1, 'Code': '4', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'LITTERING, EATING OR DRINKING IN CLASS/CHEWING IN CLASS': {'Id': 143, 'Level': 1, 'Code': '5', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'LATE COMING (AFTER 3 MINUTES) TO CLASS': {'Id': 144, 'Level': 1, 'Code': '6', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'COPYING OF WORK OR ALLOWING OTHER LEARNER TO COPY': {'Id': 145, 'Level': 1, 'Code': '7', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, "FORBIDDEN PLACES E.G GIRL IN BOY'S TOILET": {'Id': 146, 'Level': 1, 'Code': '8', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'DISOBEYING APPEARANCE & SCHOOL UNIFORM RULES': {'Id': 147, 'Level': 1, 'Code': '9', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'DISRUPTING CLASS/TEACHING': {'Id': 148, 'Level': 1, 'Code': '10', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'FOUL LANGUAGE e.g TOWARDS EDUCATOR/LEARNER/STAFF': {'Id': 149, 'Level': 1, 'Code': '11', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'NEGLECTING SCHOOL REPORTS/BOOKS TO BE SIGNED BY PARENTS ETC': {'Id': 151, 'Level': 1, 'Code': '13', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'NOT ATTENDING RELIEF CLASS': {'Id': 152, 'Level': 1, 'Code': '14', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'TASK NOT SUBMITTED/CLASS WORK BOOK/ WORK NOT UP TO DATE': {'Id': 153, 'Level': 1, 'Code': '15', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'LEAVING CLASS WITHOUT PERMISSION': {'Id': 154, 'Level': 1, 'Code': '16', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'WRITING IN TEXT BOOK/BOOKS NOT COVERED': {'Id': 155, 'Level': 1, 'Code': '17', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'BUNKING CLASS': {'Id': 156, 'Level': 1, 'Code': '18', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'DISHONESTY WITH MINOR CONSEQUENCES': {'Id': 157, 'Level': 1, 'Code': '19', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'SLEEPING IN CLASS': {'Id': 158, 'Level': 1, 'Code': '20', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'PURPOSEFUL ABSENCE FROM SCHOOL /SCHOOL FUNCTIONS ': {'Id': 159, 'Level': 1, 'Code': '21', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'PLAYING SOCCER WITHOUT PRIOR CONSENT/IN THE ASSEMBLY AREA': {'Id': 160, 'Level': 1, 'Code': '22', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'PLAYING SOCCER WITHOUT CONSENT DURING CLASS TIME': {'Id': 161, 'Level': 1, 'Code': '23', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'MINOR TROUBLING OTHER LEARNER/S': {'Id': 162, 'Level': 1, 'Code': '24', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'NECKING ON SCHOOL PREMISES, SCHOOL FUNCTIONS': {'Id': 163, 'Level': 1, 'Code': '25', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'ENTERING CLASS WITHOUT PERMISSION': {'Id': 164, 'Level': 1, 'Code': '26', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}};
+
+    document.querySelector('select[name="offense"]').addEventListener('change', function(event) {
+        const selectedDescription = event.target.value;
+        const selectedData = offensesDataYellow[selectedDescription];
+
+        // Iterate through the data and populate hidden inputs
+        for (const [key, value] of Object.entries(selectedData)) {
+            let input = document.querySelector(`input[name="${key}"]`);
+            if (!input) {
+                input = document.createElement("input");
+                input.type = "hidden";
+                input.name = key;
+                document.body.appendChild(input);
+            }
+            input.value = value;
+        }
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+
+<script>
+        // JavaScript code to handle signature modals and capture
+        const studentSignatureModal = document.getElementById("studentSignatureModal");
+        const teacherSignatureModal = document.getElementById("teacherSignatureModal");
+        const witnessSignatureModal = document.getElementById("witnessSignatureModal");
+
+        const openStudentSignatureModalBtn = document.getElementById("openStudentSignatureModal");
+        const openTeacherSignatureModalBtn = document.getElementById("openTeacherSignatureModal");
+        const openWitnessSignatureModalBtn = document.getElementById("openWitnessSignatureModal");
+
+        const studentSignatureCanvas = new SignaturePad(document.getElementById("studentSignatureCanvas"));
+        const teacherSignatureCanvas = new SignaturePad(document.getElementById("teacherSignatureCanvas"));
+        const witnessSignatureCanvas = new SignaturePad(document.getElementById("witnessSignatureCanvas"));
+
+        const clearStudentSignatureBtn = document.getElementById("clearStudentSignature");
+        const clearTeacherSignatureBtn = document.getElementById("clearTeacherSignature");
+        const clearWitnessSignatureBtn = document.getElementById("clearWitnessSignature");
+
+        const saveStudentSignatureBtn = document.getElementById("saveStudentSignature");
+        const saveTeacherSignatureBtn = document.getElementById("saveTeacherSignature");
+        const saveWitnessSignatureBtn = document.getElementById("saveWitnessSignature");
+
+        // Open the student signature modal
+        openStudentSignatureModalBtn.addEventListener("click", function () {
+            studentSignatureModal.style.display = "block";
+        });
+
+        // Open the teacher signature modal
+        openTeacherSignatureModalBtn.addEventListener("click", function () {
+            teacherSignatureModal.style.display = "block";
+        });
+
+        // Open the witness signature modal
+        openWitnessSignatureModalBtn.addEventListener("click", function () {
+            witnessSignatureModal.style.display = "block";
+        });
+
+        // Close modals when clear or save buttons are clicked
+        clearStudentSignatureBtn.addEventListener("click", function () {
+            studentSignatureCanvas.clear();
+            studentSignatureModal.style.display = "none";
+        });
+
+        clearTeacherSignatureBtn.addEventListener("click", function () {
+            teacherSignatureCanvas.clear();
+            teacherSignatureModal.style.display = "none";
+        });
+
+        clearWitnessSignatureBtn.addEventListener("click", function () {
+            witnessSignatureCanvas.clear();
+            witnessSignatureModal.style.display = "none";
+        });
+
+        // Handle signature saving for student
+        saveStudentSignatureBtn.addEventListener("click", function () {
+            const studentSignatureDataUrl = studentSignatureCanvas.toDataURL();
+            // Set the student's signature data in the hidden input field
+            document.getElementById("student_signature").value = studentSignatureDataUrl;
+            // Close the student signature modal
+            studentSignatureModal.style.display = "none";
+        });
+
+        // Handle signature saving for teacher
+        saveTeacherSignatureBtn.addEventListener("click", function () {
+            const teacherSignatureDataUrl = teacherSignatureCanvas.toDataURL();
+            // Set the teacher's signature data in the hidden input field
+            document.getElementById("teacher_signature").value = teacherSignatureDataUrl;
+            // Close the teacher signature modal
+            teacherSignatureModal.style.display = "none";
+        });
+
+        // Handle signature saving for witness
+        saveWitnessSignatureBtn.addEventListener("click", function () {
+            const witnessSignatureDataUrl = witnessSignatureCanvas.toDataURL();
+            // Set the witness's signature data in the hidden input field
+            document.getElementById("witness_signature").value = witnessSignatureDataUrl;
+            // Close the witness signature modal
+            witnessSignatureModal.style.display = "none";
+        });
+    </script>
+<script>
+        document.getElementById('grade').addEventListener('change', function () {
+            var selectedGrade = this.value;
+            var namesSelect = document.getElementById('name');
+    
+            // Clear the current options
+            namesSelect.innerHTML = '<option value="">-- Select a name --</option>';
+    
+            // Fetch the names for the selected grade from the server
+            fetch(`/get_names_by_grade/${selectedGrade}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(function (name) {
+                        var option = document.createElement('option');
+                        option.value = name;
+                        option.text = name;
+                        namesSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+</body>
+</html>
+
