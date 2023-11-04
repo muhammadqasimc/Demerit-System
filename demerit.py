@@ -31,7 +31,7 @@ from fpdf import FPDF
 app = Flask(__name__)
 
 # Constants for file paths
-STUDENT_DATA_CSV = 'student_data.csv'
+
 PENDING_SUBMISSIONS_CSV = 'pending_submissions.csv'
 
 UPLOAD_FOLDER = "uploads"
@@ -47,12 +47,28 @@ submissions_pending_approval = []
 approved_submissions = []
 
 
-# Declare the df variable as global
+# Use the correct path to your 'namewithid.csv' file
+NAMWITHID_CSV = 'namewithid.csv'
+
+# Global variable to store the dataframe
 df = None
+
+@app.route('/get_names_by_grade/<int:selected_grade>')
+def get_names_by_grade(selected_grade):
+    # Make sure to load the data if it's not already loaded
+    if df is None:
+        load_data()
+    
+    # Filter the dataframe by the selected grade and return the required fields
+    filtered_data = df[df['Grade'] == selected_grade][['Learnerid', 'Name']]
+    # Convert the filtered data to a list of dictionaries
+    names_with_ids = filtered_data.to_dict(orient='records')
+    return jsonify(names_with_ids)
 
 def load_data():
     global df
-    df = pd.read_csv(STUDENT_DATA_CSV)
+    # Load the data from the CSV file
+    df = pd.read_csv(NAMWITHID_CSV)
 
 # Call the load_data function to load the CSV data when the app starts
 load_data()
@@ -73,7 +89,11 @@ def load_pending_submissions():
 # Function to save pending submissions to a CSV file
 def save_pending_submissions(submissions):
     with open(PENDING_SUBMISSIONS_CSV, mode='w', newline='') as file:
-        fieldnames = ["Name", "Grade", "Date", "Notes", 'Username', "Offenses", "StudentSignature", "TeacherSignature", "WitnessSignature"]
+        fieldnames = ["Name", "Grade", "Date", "Notes", 'Username', "Offenses", "LearnerId", "StudentSignature", "TeacherSignature", "WitnessSignature", "offenseId",  # This seems to be repeated for different values, you likely want to use different keys
+    "offenseLevel",
+    "offenseCode",
+    "offenseType",
+    "offensePoint"]
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         for submission in submissions:
@@ -277,10 +297,6 @@ def select_name():
     
     return render_template('select_name.html', data=filtered_data)
 
-@app.route('/get_names_by_grade/<int:selected_grade>')
-def get_names_by_grade(selected_grade):
-    names = df[df['Grade'] == selected_grade]['Name'].tolist()
-    return jsonify(names)
 
 # Define the directory where signature images will be saved
 signature_folder = 'signatures'
@@ -313,6 +329,13 @@ def submit_form():
         current_date = datetime.now().strftime('%Y-%m-%d')
         notes = request.form['notes']  # Retrieve the notes from the form
         username = session['username']
+        selected_learnerid = request.form['learner_id']
+
+        offense_id = request.form.get('Id')
+        offense_level = request.form.get('Level')
+        offense_code = request.form.get('Code')
+        offense_type = request.form.get('Type')
+        offense_point = request.form.get('Point')
         
         # Handle the student's signature
         student_signature_data_url = request.form['student_signature']
@@ -356,7 +379,15 @@ def submit_form():
             'Date': current_date,
             'Offenses': ', '.join(selected_offenses),
             'Notes': notes,
-            'Username' : username
+            'Username' : username,
+            'LearnerId' : selected_learnerid,
+            'offenseId' : offense_id,
+            "offenseLevel": offense_level,
+            "offenseCode": offense_code,
+            "offenseType": offense_type,
+            "offensePoint": offense_point
+
+
         }
 
         # Append the submission to the pending approval list
