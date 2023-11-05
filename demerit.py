@@ -318,7 +318,7 @@ def submit_form():
                 selected_name = request.form["name"]
 
                 # Get the current date in the format YYYY-MM-DD
-                current_date = datetime.now().strftime("%Y-%m-%d")
+                current_date = datetime.now().strftime("%d-%m-%y")
 
                 # Combine the selected name and current date to create the filename
                 raw_filename = f"{selected_name}_{current_date}.jpg"
@@ -333,7 +333,7 @@ def submit_form():
         selected_grade = request.form['grade']
         selected_name = request.form['name']
         selected_offenses = request.form.getlist('offense')
-        current_date = datetime.now().strftime('%Y-%m-%d')
+        current_date = datetime.now().strftime('%d-%m-%y')
         notes = request.form['notes']  # Retrieve the notes from the form
         username = session['username']
         selected_learnerid = request.form['learner_id']
@@ -570,6 +570,55 @@ def approve_submission(index):
 
         # Save the PDF to the file
         pdf.output(pdf_path)
+
+        # Parse the original date assuming it's in the format "dd/mm/yy"
+        original_date = datetime.strptime(submission['Date'], '%d-%m-%y')
+
+        # Format the date into the required formats
+        formatted_date = original_date.strftime('%d/%m/%y') + ' 00:00:00'  # Adding the '00:00:00' part manually
+        formatted_month = original_date.strftime('%m')
+        formatted_year = original_date.strftime('%Y')
+
+        # Now, map the submission data to your new CSV headers
+        mapped_submission = {
+            'id': '',  # Assuming you need to generate or have an ID
+            'Learnerid': submission['LearnerId'],  # Replace with actual key if exists
+            'Date': formatted_date,
+            'Comment': submission['Notes'],
+            'LevelMisconduct': submission['offenseLevel'],
+            'MisconductCode': submission['offenseCode'],
+            'MisconductDescription': submission['Offenses'],
+            'ActionLevel' : '',
+            'ActionCode' : '',
+            'ActionDescription': '',
+            'DisciplinedBy': '',
+            'AuthorisedBy': submission['Username'],
+            'Agency': '',
+            'Suspension': '0',
+            'Option': '',
+            'ExpulsionDate': '',
+            'Month': formatted_month,
+            'RecommendedExpulsion': '',
+            'Datayear': formatted_year,
+            'Demerit' : submission['offensePoint'],
+            'Merit': '0',
+            'Type': 'Demerit'
+        }
+
+        # Define the path to the CSV file
+        csv_file_path = 'mdb-import.csv'
+
+        # Check if the file exists and if not, write the header
+        file_exists = os.path.isfile(csv_file_path)
+
+        with open(csv_file_path, 'a', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=mapped_submission.keys())
+            
+            # Write the header only if the file does not exist
+            if not file_exists:
+                writer.writeheader()
+            
+            writer.writerow(mapped_submission)
 
         # Save pending submissions to the CSV file
         save_pending_submissions(submissions_pending_approval)
