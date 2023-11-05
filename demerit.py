@@ -255,7 +255,14 @@ def yellow():
         names_by_grade = {}
         for grade in grades:
             names_by_grade[grade] = df[df['Grade'] == grade]['Name'].tolist()
-        return render_template('yellow.html', grades=grades, namesByGrade=names_by_grade)
+
+        # Read the offenses from the CSV file
+        offenses_df = pd.read_csv('yellowcodes.csv')
+        
+        # Convert the DataFrame to a list of dictionaries for easy handling in the template
+        offenses_list = offenses_df.to_dict(orient='records')
+
+        return render_template('yellow.html', grades=grades, offenses=offenses_list, namesByGrade=names_by_grade)
     else:
         return redirect(url_for('login'))
     

@@ -88,8 +88,13 @@
 
 <br/>
 <label>Select Offense:</label>
-<select name="offense"><option value="NEGLECTING HOMEWORK/HOMEWORK NOT DONE">NEGLECTING HOMEWORK/HOMEWORK NOT DONE</option><option value="RUDE TOWARDS EDUCATOR/LEARNER/STAFF MEMBER">RUDE TOWARDS EDUCATOR/LEARNER/STAFF MEMBER</option><option value="TEXT BOOKS &amp; SCRIPTS NOT AVAILABLE">TEXT BOOKS &amp; SCRIPTS NOT AVAILABLE</option><option value="DISOBEDIENCE, NOT LISTENING IN CLASS">DISOBEDIENCE, NOT LISTENING IN CLASS</option><option value="LITTERING, EATING OR DRINKING IN CLASS/CHEWING IN CLASS">LITTERING, EATING OR DRINKING IN CLASS/CHEWING IN CLASS</option><option value="LATE COMING (AFTER 3 MINUTES) TO CLASS">LATE COMING (AFTER 3 MINUTES) TO CLASS</option><option value="COPYING OF WORK OR ALLOWING OTHER LEARNER TO COPY">COPYING OF WORK OR ALLOWING OTHER LEARNER TO COPY</option><option value="FORBIDDEN PLACES E.G GIRL IN BOY'S TOILET">FORBIDDEN PLACES E.G GIRL IN BOY'S TOILET</option><option value="DISOBEYING APPEARANCE &amp; SCHOOL UNIFORM RULES">DISOBEYING APPEARANCE &amp; SCHOOL UNIFORM RULES</option><option value="DISRUPTING CLASS/TEACHING">DISRUPTING CLASS/TEACHING</option><option value="FOUL LANGUAGE e.g TOWARDS EDUCATOR/LEARNER/STAFF">FOUL LANGUAGE e.g TOWARDS EDUCATOR/LEARNER/STAFF</option><option value="NEGLECTING SCHOOL REPORTS/BOOKS TO BE SIGNED BY PARENTS ETC">NEGLECTING SCHOOL REPORTS/BOOKS TO BE SIGNED BY PARENTS ETC</option><option value="NOT ATTENDING RELIEF CLASS">NOT ATTENDING RELIEF CLASS</option><option value="TASK NOT SUBMITTED/CLASS WORK BOOK/ WORK NOT UP TO DATE">TASK NOT SUBMITTED/CLASS WORK BOOK/ WORK NOT UP TO DATE</option><option value="LEAVING CLASS WITHOUT PERMISSION">LEAVING CLASS WITHOUT PERMISSION</option><option value="WRITING IN TEXT BOOK/BOOKS NOT COVERED">WRITING IN TEXT BOOK/BOOKS NOT COVERED</option><option value="BUNKING CLASS">BUNKING CLASS</option><option value="DISHONESTY WITH MINOR CONSEQUENCES">DISHONESTY WITH MINOR CONSEQUENCES</option><option value="SLEEPING IN CLASS">SLEEPING IN CLASS</option><option value="PURPOSEFUL ABSENCE FROM SCHOOL /SCHOOL FUNCTIONS ">PURPOSEFUL ABSENCE FROM SCHOOL /SCHOOL FUNCTIONS </option><option value="PLAYING SOCCER WITHOUT PRIOR CONSENT/IN THE ASSEMBLY AREA">PLAYING SOCCER WITHOUT PRIOR CONSENT/IN THE ASSEMBLY AREA</option><option value="PLAYING SOCCER WITHOUT CONSENT DURING CLASS TIME">PLAYING SOCCER WITHOUT CONSENT DURING CLASS TIME</option><option value="MINOR TROUBLING OTHER LEARNER/S">MINOR TROUBLING OTHER LEARNER/S</option><option value="NECKING ON SCHOOL PREMISES, SCHOOL FUNCTIONS">NECKING ON SCHOOL PREMISES, SCHOOL FUNCTIONS</option><option value="ENTERING CLASS WITHOUT PERMISSION">ENTERING CLASS WITHOUT PERMISSION</option></select>
-<br/>
+<select name="offense" id="offense-select">
+    {% for offense in offenses %}
+        <option value="{{ offense['Description'] }}" data-code="{{ offense['Code'] }}" data-level="{{ offense['Level'] }}" data-type="{{ offense['Type'] }}" data-point="{{ offense['Point'] }}">
+            {{ offense['Description'] }}
+        </option>
+    {% endfor %}
+</select><br/>
 <input type="hidden" name="Id">
         <input type="hidden" name="Level">
         <input type="hidden" name="Code">
@@ -143,41 +148,19 @@
 </div>
 
 <script>
-    const offensesDataYellow = {'NEGLECTING HOMEWORK/HOMEWORK NOT DONE': {'Id': 139, 'Level': 1, 'Code': '1-00', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'RUDE TOWARDS EDUCATOR/LEARNER/STAFF MEMBER': {'Id': 140, 'Level': 1, 'Code': '2', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'TEXT BOOKS & SCRIPTS NOT AVAILABLE': {'Id': 141, 'Level': 1, 'Code': '3', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'DISOBEDIENCE, NOT LISTENING IN CLASS': {'Id': 142, 'Level': 1, 'Code': '4', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'LITTERING, EATING OR DRINKING IN CLASS/CHEWING IN CLASS': {'Id': 143, 'Level': 1, 'Code': '5', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'LATE COMING (AFTER 3 MINUTES) TO CLASS': {'Id': 144, 'Level': 1, 'Code': '6', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'COPYING OF WORK OR ALLOWING OTHER LEARNER TO COPY': {'Id': 145, 'Level': 1, 'Code': '7', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, "FORBIDDEN PLACES E.G GIRL IN BOY'S TOILET": {'Id': 146, 'Level': 1, 'Code': '8', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'DISOBEYING APPEARANCE & SCHOOL UNIFORM RULES': {'Id': 147, 'Level': 1, 'Code': '9', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'DISRUPTING CLASS/TEACHING': {'Id': 148, 'Level': 1, 'Code': '10', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'FOUL LANGUAGE e.g TOWARDS EDUCATOR/LEARNER/STAFF': {'Id': 149, 'Level': 1, 'Code': '11', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'NEGLECTING SCHOOL REPORTS/BOOKS TO BE SIGNED BY PARENTS ETC': {'Id': 151, 'Level': 1, 'Code': '13', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'NOT ATTENDING RELIEF CLASS': {'Id': 152, 'Level': 1, 'Code': '14', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'TASK NOT SUBMITTED/CLASS WORK BOOK/ WORK NOT UP TO DATE': {'Id': 153, 'Level': 1, 'Code': '15', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'LEAVING CLASS WITHOUT PERMISSION': {'Id': 154, 'Level': 1, 'Code': '16', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'WRITING IN TEXT BOOK/BOOKS NOT COVERED': {'Id': 155, 'Level': 1, 'Code': '17', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'BUNKING CLASS': {'Id': 156, 'Level': 1, 'Code': '18', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'DISHONESTY WITH MINOR CONSEQUENCES': {'Id': 157, 'Level': 1, 'Code': '19', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'SLEEPING IN CLASS': {'Id': 158, 'Level': 1, 'Code': '20', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'PURPOSEFUL ABSENCE FROM SCHOOL /SCHOOL FUNCTIONS ': {'Id': 159, 'Level': 1, 'Code': '21', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'PLAYING SOCCER WITHOUT PRIOR CONSENT/IN THE ASSEMBLY AREA': {'Id': 160, 'Level': 1, 'Code': '22', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'PLAYING SOCCER WITHOUT CONSENT DURING CLASS TIME': {'Id': 161, 'Level': 1, 'Code': '23', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'MINOR TROUBLING OTHER LEARNER/S': {'Id': 162, 'Level': 1, 'Code': '24', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'NECKING ON SCHOOL PREMISES, SCHOOL FUNCTIONS': {'Id': 163, 'Level': 1, 'Code': '25', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}, 'ENTERING CLASS WITHOUT PERMISSION': {'Id': 164, 'Level': 1, 'Code': '26', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 2}};
-
-    document.querySelector('select[name="offense"]').addEventListener('change', function(event) {
-    console.log("Adding event listener to offense select dropdown.");
-    console.log("Offense selected:", event.target.value);
-    const form = document.getElementById('demeritsForm');
-    const selectedDescription = event.target.value;
-    const selectedData = offensesDataYellow[selectedDescription];
-
-    if (!selectedData) {
-        console.error("No data found for selected offense:", selectedDescription);
-        return;
-    }
-
-    console.log("Populating fields for selected offense.");
-
-    // Iterate through the data and populate hidden inputs
-    for (const [key, value] of Object.entries(selectedData)) {
-        if (value === 'nan') { // Check for the string 'nan' instead of the undefined variable nan
-            console.log("Skipping field", key, "with 'nan' value");
-            continue; // Skip if the value is 'nan'
-        }
-
-        let input = form.querySelector(`input[name="${key}"]`);
-        if (!input) {
-            console.log("Creating hidden input for", key);
-            input = document.createElement("input");
-            input.type = "hidden";
-            input.name = key;
-            form.appendChild(input);
-        }
-        input.value = value;
-        console.log(`Set value for ${key}:`, value);
-    }
-});
+    document.addEventListener('DOMContentLoaded', function() {
+        var selectElement = document.getElementById('offense-select');
+        selectElement.addEventListener('change', function() {
+            // Find the selected option
+            var selectedOption = selectElement.options[selectElement.selectedIndex];
+            
+            // Update hidden input fields
+            document.getElementsByName('Level')[0].value = selectedOption.getAttribute('data-level');
+            document.getElementsByName('Code')[0].value = selectedOption.getAttribute('data-code');
+            document.getElementsByName('Type')[0].value = selectedOption.getAttribute('data-type');
+            document.getElementsByName('Point')[0].value = selectedOption.getAttribute('data-point');
+        });
+    });
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
