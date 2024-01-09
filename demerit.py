@@ -345,18 +345,43 @@ def submit_form():
         offense_type = request.form.get('Type')
         offense_point = request.form.get('Point')
         
-        # Handle the student's signature
-        student_signature_data_url = request.form['student_signature']
-        if student_signature_data_url:
-            # Generate a unique filename for the student's signature image
-            student_signature_filename = f'{selected_name}_{current_date}.png'
-            student_signature_path = os.path.join(signature_folder, student_signature_filename)
+        # # Handle the student's signature
+        # student_signature_data_url = request.form['student_signature']
+        # if student_signature_data_url:
+        #     # Generate a unique filename for the student's signature image
+        #     student_signature_filename = f'{selected_name}_{current_date}.png'
+        #     student_signature_path = os.path.join(signature_folder, student_signature_filename)
 
-            # Convert the data URL back to an image and save it as a PNG
-            student_signature_image_data = student_signature_data_url.split(',')[1]
-            student_signature_image_binary = base64.b64decode(student_signature_image_data)
-            with open(student_signature_path, 'wb') as student_signature_file:
-                student_signature_file.write(student_signature_image_binary)
+        #     # Convert the data URL back to an image and save it as a PNG
+        #     student_signature_image_data = student_signature_data_url.split(',')[1]
+        #     student_signature_image_binary = base64.b64decode(student_signature_image_data)
+        #     with open(student_signature_path, 'wb') as student_signature_file:
+        #         student_signature_file.write(student_signature_image_binary)
+
+        # Generate a unique filename for the digital signature image
+        student_signature_filename = f'{selected_name}.png'
+        signature_path1 = os.path.join(signature_folder, student_signature_filename)
+
+        # Create an image with the selected name as signature
+        img1 = Image.new('RGB', (650, 250), color = (255, 255, 255))
+        d = ImageDraw.Draw(img1)
+        font = ImageFont.truetype("static/Andina Demo.otf", 48)  # Specify the path to a signature-style font file
+        d.text((10,10), selected_name, font=font, fill=(0,0,0))
+
+        # Generate a unique filename for the teacher digital signature image
+        teacher_signature_filename = f'{username}.png'
+        signature_path = os.path.join(signature_folder, teacher_signature_filename)
+
+        # Create an image with the selected name as signature
+        img = Image.new('RGB', (650, 250), color = (255, 255, 255))
+        d1 = ImageDraw.Draw(img)
+        font = ImageFont.truetype("static/Andina Demo.otf", 48)  # Specify the path to a signature-style font file
+        d1.text((10,10), username, font=font, fill=(0,0,0))
+
+        # Save the signature image
+
+        img1.save(signature_path1)
+        img.save(signature_path)
 
         # Handle the teacher's signature (similar code as above)
         teacher_signature_data_url = request.form['teacher_signature']
@@ -507,7 +532,7 @@ def approve_submission(index):
         pdf.cell(0, 30, txt="", border=1, ln=True)  # Cell for the signature with borders
 
         # Load and embed the student's signature image within the cell
-        student_signature_filename = f'{submission["Name"]}_{submission["Date"]}.png'
+        student_signature_filename = f'{submission["Name"]}.png'
         student_signature_path = os.path.join(signature_folder, student_signature_filename)
         pdf.image(student_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() - 25, w=0, h=20)  # Adjust position and size
 
@@ -520,7 +545,7 @@ def approve_submission(index):
         pdf.cell(0, 30, txt="", border=1, ln=True)  # Cell for the signature with borders
 
         # Load and embed the teacher's signature image within the cell
-        teacher_signature_filename = f'{submission["Username"]}_{submission["Date"]}.png'
+        teacher_signature_filename = f'{submission["Username"]}.png'
         teacher_signature_path = os.path.join(signature_folder, teacher_signature_filename)
         pdf.image(teacher_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() - 25, w=0, h=20)  # Adjust position and size
 
@@ -787,4 +812,4 @@ def download_pdf(filename):
 
 
 if __name__ == '__main__':
-    app.run(host='192.168.10.35', port=8080)
+    app.run(host='192.168.10.38', port=8080)

@@ -25,6 +25,15 @@ header img {
     max-height: 40px;
 }
 
+.nav-block a {
+    display: block;  /* Makes the anchor fill the div */
+    padding: 10px;   /* Adjust padding as needed */
+    text-align: center; /* Optional, for centering text */
+    text-decoration: none; /* Optional, to remove the underline of links */
+    color: inherit; /* Optional, to maintain text color */
+}
+
+
 header a {
     color: #fff;
     text-decoration: none;
