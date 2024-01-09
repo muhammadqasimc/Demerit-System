@@ -1,6 +1,7 @@
 import base64
 import io
 import uuid
+from flask import abort, current_app
 from zipfile import ZipFile
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session, send_from_directory
 import pandas as pd
@@ -636,179 +637,153 @@ def reject_submission(index):
 
     return redirect(url_for('admin'))
 
+@app.route('/reset_mdb', methods=['POST'])
+def reset_mdb():
+    # Define the path to the CSV file
+    csv_file_path = 'mdb-import.csv'
+    
+    # Open the file in write mode to clear its contents
+    with open(csv_file_path, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        # Write the headers to the CSV file
+        writer.writerow([
+            'id', 'Learnerid', 'Date', 'Comment', 'LevelMisconduct', 'MisconductCode',
+            'MisconductDescription', 'ActionLevel', 'ActionCode', 'ActionDescription',
+            'DisciplinedBy', 'AuthorisedBy', 'Agency', 'Suspension', 'Option',
+            'ExpulsionDate', 'Month', 'RecommendedExpulsion', 'Datayear',
+            'Demerit', 'Merit', 'Type'
+        ])
+    
+    # Redirect to the admin page or another appropriate page
+    return redirect(url_for('admin'))
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)  # Remove the username from the session
     return redirect(url_for('login'))
+
+
+@app.route('/get_directory_data', methods=['GET'])
+def get_directory_data():
+    base_directory = os.path.join(os.getcwd(), 'Demerits')
     
+    grades = set()
+    names = set()
+
+    # Walk through the directory to gather grade folders and names from filenames
+    for root, dirs, files in os.walk(base_directory):
+        for dir in dirs:
+            if dir.startswith('Grade_'):
+                grades.add(dir)
+        for file in files:
+            if file.endswith('.pdf'):
+                # Assuming the filename format is 'Name_Date.pdf'
+                name = file.split('_')[0]  # This gets the name part of the file
+                names.add(name)
+
+    return jsonify({
+        'grades': list(grades),
+        'names': list(names)
+    })
+
+def filter_pdfs():
+    # Extract query parameters from the request
+    grade = request.args.get('grade')
+    name = request.args.get('name')
+    date = request.args.get('date')
+
+    # Base directory where the PDFs are stored
+    base_directory = os.path.join(os.getcwd(), 'Demerits')
+
+    # Filter PDFs based on the provided parameters
+    filtered_pdfs = []
+    for root, dirs, files in os.walk(base_directory):
+        for file in files:
+            if file.endswith('.pdf'):
+                if grade and f"Grade_{grade}" not in root:
+                    continue
+                if name and name not in file:
+                    continue
+                if date and date not in file:
+                    continue
+                filtered_pdfs.append(file)
+
+    return jsonify(filtered_pdfs)
 
 @app.route('/directory')
 def directory():
-    # Specify the directory where the PDF files are located
-    pdf_directory = 'Demerits'
-
-    # Create a list to store the available PDF files
-    pdf_file_list = []
-
-    # Loop through the grade directories and list PDF files
-    for grade_folder in os.listdir(pdf_directory):
-        if os.path.isdir(os.path.join(pdf_directory, grade_folder)):
-            grade_path = os.path.join(pdf_directory, grade_folder)
-            for pdf_file in os.listdir(grade_path):
-                if pdf_file.endswith('.pdf'):
-                    # Construct the full file path
-                    file_path = os.path.join(grade_path, pdf_file)
-                    # Create a dictionary with file information
-                    pdf_info = {
-                        'grade_folder': grade_folder,
-                        'file_name': pdf_file,
-                        'file_path': file_path,
-                    }
-                    pdf_file_list.append(pdf_info)
-
-    # Get unique grade values for the grade filter dropdown
-    grades = sorted(set(info['grade_folder'] for info in pdf_file_list))
-
-    # Get unique student names for the student filter dropdown
-    students = sorted(set(info['file_name'].split('_')[0] for info in pdf_file_list))
-
-    return render_template('directory.html', pdf_files=pdf_file_list, grades=grades, students=students,
-                           filtered_pdf_files=pdf_file_list)
-
-@app.route('/filter_directory', methods=['POST'])
-def filter_directory():
-    selected_grade = request.form.get('selected_grade')
-    selected_student = request.form.get('selected_student')
-    start_date = request.form.get('start_date')
-    end_date = request.form.get('end_date')
-
-    # Specify the directory where the PDF files are located
-    pdf_directory = 'Demerits'
-
-    # Create a list to store the available PDF files
-    pdf_file_list = []
-
-    # Loop through the grade directories and list PDF files
-    for grade_folder in os.listdir(pdf_directory):
-        if os.path.isdir(os.path.join(pdf_directory, grade_folder)):
-            grade_path = os.path.join(pdf_directory, grade_folder)
-            for pdf_file in os.listdir(grade_path):
-                if pdf_file.endswith('.pdf'):
-                    # Construct the full file path
-                    file_path = os.path.join(grade_path, pdf_file)
-                    # Check if the file matches the filter criteria
-                    file_info = {
-                        'grade_folder': grade_folder,
-                        'file_name': pdf_file,
-                        'file_path': file_path,
-                    }
-                    if (not selected_grade or file_info['grade_folder'] == selected_grade) and \
-                       (not selected_student or file_info['file_name'].startswith(selected_student)) and \
-                       (not start_date or file_info['file_name'].split('_')[1] >= start_date) and \
-                       (not end_date or file_info['file_name'].split('_')[1] <= end_date):
-                        pdf_file_list.append(file_info)
-
-    # Get unique grade values for the grade filter dropdown
-    grades = sorted(set(info['grade_folder'] for info in pdf_file_list))
-
-    # Get unique student names for the student filter dropdown
-    students = sorted(set(info['file_name'].split('_')[0] for info in pdf_file_list))
-
-    return render_template('directory.html', pdf_files=pdf_file_list, grades=grades, students=students,
-                           filtered_pdf_files=pdf_file_list)
-
-@app.route('/bulk_download_directory', methods=['POST'])
-def bulk_download_directory():
-    selected_files = request.form.getlist('selected_files')
-
-    # Check if any files are selected for download
-    if not selected_files:
-        return "No files selected for download."
-
-    # Create a zip file containing the selected PDF files
-    zip_filename = 'bulk_download.zip'
-    with ZipFile(zip_filename, 'w') as zipf:
-        for file_path in selected_files:
-            # Make sure the selected file exists and is allowed for download
-            if os.path.exists(file_path):
-                zipf.write(file_path, os.path.basename(file_path))
-
-    # Send the zip file for download
-    return send_file(zip_filename, as_attachment=True)
+    # This will render a template called 'directory.html'
+    # You need to create this HTML template and include the necessary JavaScript for filtering and downloading
+    return render_template('directory.html')
 
 
-@app.route('/pdf_files', methods=['GET', 'POST'])
-def pdf_files():
-    # Create a list to store the available PDF files
-    pdf_file_list = []
+@app.route('/get_pdfs', methods=['POST'])
+def get_pdfs():
+    # This will handle the AJAX request from the frontend to get the list of PDFs
+    # You can pass filtering parameters from the frontend to this function
+    data = request.json
+    grade_filter = data.get('grade')
+    name_filter = data.get('name')
+    date_filter = data.get('date')
+    
+    pdfs = []
+    base_dir = 'Demerits'  # Base directory where PDFs are stored
 
-    # Specify the directory where the PDF files are located (same as CSV)
-    pdf_directory = 'Demerits'
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            if file.endswith('.pdf'):
+                file_path = os.path.join(root, file)
+                file_stats = os.stat(file_path)
+                file_date = datetime.fromtimestamp(file_stats.st_mtime).strftime('%Y-%m-%d')
+                file_grade = root.split('_')[-1]  # Assumes the format 'Demerits/Grade_X'
 
-    # Loop through the grade directories and list PDF files
-    for grade_folder in os.listdir(pdf_directory):
-        if os.path.isdir(os.path.join(pdf_directory, grade_folder)):
-            grade_path = os.path.join(pdf_directory, grade_folder)
-            for pdf_file in os.listdir(grade_path):
-                if pdf_file.endswith('.pdf'):
-                    # Construct the full file path
-                    file_path = os.path.join(grade_path, pdf_file)
-                    # Create a dictionary with file information
-                    pdf_info = {
-                        'grade_folder': grade_folder,
-                        'file_name': pdf_file,
-                        'file_path': file_path,
-                    }
-                    pdf_file_list.append(pdf_info)
+                # Apply filters if they are provided
+                if grade_filter and grade_filter not in file_grade:
+                    continue
+                if name_filter and name_filter not in file:
+                    continue
+                if date_filter and date_filter != file_date:
+                    continue
+                
+                pdf_info = {
+                    'name': file,
+                    'date': file_date,
+                    'grade': file_grade,
+                    'path': file_path
+                }
+                pdfs.append(pdf_info)
+    
+    return jsonify(pdfs)
 
-    # Get unique grade values for the grade filter dropdown
-    grades = sorted(set(info['grade_folder'] for info in pdf_file_list))
 
-    # Get unique student names for the student filter dropdown
-    students = sorted(set(info['file_name'].split('_')[0] for info in pdf_file_list))
+@app.route('/download_pdf/<path:filename>')
+def download_pdf(filename):
+    # Log the requested filename for debugging
+    print(f"Requested filename: {filename}")
 
-    # Initialize the filtered file list
-    filtered_pdf_files = pdf_file_list
+    # This is the correct path to the Demerits directory
+    demerits_directory = os.path.join(current_app.root_path, 'Demerits')
+    print(f"Demerits directory: {demerits_directory}")
 
-    if request.method == 'POST':
-        selected_grade = request.form.get('selected_grade')
-        selected_student = request.form.get('selected_student')
+    # The filename should be a relative path like 'Grade_12/Ahmed_SHALABI_2023-10-07.pdf'
+    # Make sure the 'filename' parameter does not include 'Demerits/' as it is already in 'demerits_directory'
+    if filename.startswith('Demerits/'):
+        # If it does, strip it from the filename
+        filename = filename[len('Demerits/'):]
 
-        # Apply grade filter
-        if selected_grade:
-            filtered_pdf_files = [info for info in filtered_pdf_files if info['grade_folder'] == selected_grade]
+    expected_path = os.path.join(demerits_directory, filename)
+    print(f"Expected path: {expected_path}")
 
-        # Apply student filter
-        if selected_student:
-            filtered_pdf_files = [info for info in filtered_pdf_files if info['file_name'].startswith(selected_student)]
+    if not os.path.exists(expected_path):
+        print("File does not exist.")
+        abort(404)
 
-    return render_template('pdf_files.html', pdf_files=pdf_file_list, grades=grades, students=students,
-                           filtered_pdf_files=filtered_pdf_files)
-
-@app.route('/bulk_download_pdf', methods=['POST'])
-def bulk_download_pdf():
-    selected_files = request.form.getlist('selected_files')
-
-    # Check if any files are selected for download
-    if not selected_files:
-        return "No files selected for download."
-
-    # Specify the directory where the PDF files are located
-    pdf_directory = 'Demerits'
-
-    # Create a zip file containing the selected PDF files
-    zip_filename = 'bulk_download_pdf.zip'
-    with ZipFile(zip_filename, 'w') as zipf:
-        for file_name in selected_files:
-            # Construct the full file path
-            file_path = os.path.join(pdf_directory, file_name)
-            
-            # Make sure the selected file exists and is allowed for download
-            if os.path.exists(file_path):
-                zipf.write(file_path, file_name)  # Use file_name as the archive name
-
-    # Send the zip file for download
-    return send_file(zip_filename, as_attachment=True)
+    try:
+        # Now we pass the correct directory and filename to send_from_directory
+        return send_from_directory(directory=demerits_directory, path=filename, as_attachment=True)
+    except FileNotFoundError:
+        print(f"File not found: {filename}")
+        abort(404)
 
 
 if __name__ == '__main__':

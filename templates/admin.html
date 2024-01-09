@@ -79,6 +79,9 @@
     </footer>
     
     <h1>Admin Interface</h1>
+    <form action="{{ url_for('reset_mdb') }}" method="post">
+        <input type="submit" value="MDB Submitted" />
+    </form>
 
     <h2>Pending Submissions</h2>
     <form method="POST" action="{{ url_for('admin') }}">

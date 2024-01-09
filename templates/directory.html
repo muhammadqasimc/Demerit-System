@@ -1,87 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Demerit Directory</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='downfiles.css') }}">
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directory</title>
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background: #f7f7f7;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    select, .date-input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+    .button {
+        padding: 10px 20px;
+        background-color: #5cb85c;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .button:hover {
+        background-color: #4cae4c;
+    }
+    .pdf-list {
+        list-style-type: none;
+        padding: 0;
+    }
+    .pdf-list li {
+        background: #e9e9e9;
+        margin-bottom: 5px;
+        padding: 10px;
+        border-radius: 4px;
+    }
+    .pdf-list li a {
+        text-decoration: none;
+        color: #333;
+    }
+</style>
 </head>
 <body>
-    <h1>Demerit Directory</h1>
+<div class="container">
+    <h1>PDF Directory</h1>
+    <label for="gradeFilter">Grade:</label>
+    <select id="gradeFilter">
+        <option value="">Select Grade</option>
+        <!-- Grades will be dynamically loaded here -->
+    </select>
+
+    <label for="nameFilter">Name:</label>
+    <select id="nameFilter">
+        <option value="">Select Name</option>
+        <!-- Names will be dynamically loaded based on grade -->
+    </select>
+
+    <label for="dateFilter">Date:</label>
+    <input type="date" id="dateFilter" class="date-input">
+
+    <button class="button" onclick="filterPDFs()">Filter PDFs</button>
+
+    <ul id="pdfList" class="pdf-list">
+        <!-- PDF links will be dynamically loaded here -->
+    </ul>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  fetch('/get_directory_data')
+    .then(response => response.json())
+    .then(data => {
+      const gradeSelect = document.getElementById('gradeFilter');
+      const nameSelect = document.getElementById('nameFilter');
+      
+      // Populate the grades dropdown
+      data.grades.forEach(grade => {
+        let option = document.createElement('option');
+        option.value = grade;
+        option.textContent = grade.replace('_', ' ');
+        gradeSelect.appendChild(option);
+      });
+    })
+    .catch(error => console.error('Error fetching directory data:', error));
+
+  gradeSelect.addEventListener('change', function() {
+    // Clear current names
+    nameSelect.innerHTML = '<option value="">Select Name</option>';
     
-    <form method="POST" action="/filter_directory">
-        <label for="grade">Select Grade:</label>
-        <select id="grade" name="selected_grade">
-            <option value="">All</option>
-            {% for grade in grades %}
-                <option value="{{ grade }}">{{ grade }}</option>
-            {% endfor %}
-        </select>
-        
-        <label for="student">Select Student:</label>
-        <select id="student" name="selected_student">
-            <option value="">All</option>
-            {% for student in students %}
-                <option value="{{ student }}">{{ student }}</option>
-            {% endfor %}
-        </select>
-        
-        <label for="start_date">Start Date:</label>
-        <input type="date" id="start_date" name="start_date">
-        
-        <label for="end_date">End Date:</label>
-        <input type="date" id="end_date" name="end_date">
-        
-        <button type="submit">Filter</button>
-    </form>
-
-    <form method="POST" action="/bulk_download_directory" id="download-form">
-        <label for="selected_files">Select Files to Download:</label>
-        <select multiple id="selected_files" name="selected_files[]">
-            {% for file_info in filtered_pdf_files %}
-                <option value="{{ file_info['file_path'] }}">{{ file_info['file_name'] }}</option>
-            {% endfor %}
-        </select>
-        
-        <button type="button" id="download-button">Bulk Download Selected Files</button>
-    </form>
-
-    <script>
-        document.getElementById('download-button').addEventListener('click', function() {
-            // Create an array to store selected file paths
-            var selectedFiles = [];
-            
-            // Find all options in the select element
-            var selectElement = document.getElementById('selected_files');
-            var options = selectElement.options;
-
-            // Loop through options and check if they are selected
-            for (var i = 0; i < options.length; i++) {
-                if (options[i].selected) {
-                    selectedFiles.push(options[i].value);
-                }
-            }
-
-            // Send the selected files to the server for download
-            fetch('/bulk_download_directory', {
-                method: 'POST',
-                body: JSON.stringify(selectedFiles),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(function(response) {
-                // Handle the server's response here, e.g., show a success message
-                console.log('Response from server:', response);
-                // You can also redirect the user or perform other actions as needed
-            })
-            .catch(function(error) {
-                // Handle errors here, e.g., display an error message
-                console.error('Error:', error);
-            });
+    // Fetch and populate names based on selected grade
+    const selectedGrade = this.value;
+    fetch(`/get_names_by_grade/${selectedGrade}`)
+      .then(response => response.json())
+      .then(names => {
+        names.forEach(name => {
+          let option = document.createElement('option');
+          option.value = name;
+          option.textContent = name;
+          nameSelect.appendChild(option);
         });
+      })
+      .catch(error => console.error('Error fetching names:', error));
+  });
+});
 
-    </script>
-    
+function filterPDFs() {
+  const grade = document.getElementById('gradeFilter').value;
+  const name = document.getElementById('nameFilter').value;
+  const date = document.getElementById('dateFilter').value;
+  const pdfList = document.getElementById('pdfList');
+
+  // Clear current PDFs
+  pdfList.innerHTML = '';
+
+  // Construct the query
+  const query = `grade=${grade}&name=${name}&date=${date}`;
+
+  fetch(`/filter_pdfs?${query}`)
+    .then(response => response.json())
+    .then(pdfs => {
+      pdfs.forEach(pdf => {
+        let li = document.createElement('li');
+        let a = document.createElement('a');
+        a.href = `/download_pdf/${pdf}`;
+        a.textContent = pdf;
+        li.appendChild(a);
+        pdfList.appendChild(li);
+      });
+    })
+    .catch(error => console.error('Error fetching PDFs:', error));
+}
+function getDirectoryData() {
+  fetch('/get_directory_data')
+    .then(response => response.json())
+    .then(data => {
+      // Assuming you have select elements with ids 'grade-select' and 'name-select'
+      const gradeSelect = document.getElementById('grade-select');
+      const nameSelect = document.getElementById('name-select');
+
+      // Populate grades
+      data.grades.forEach(grade => {
+        let option = document.createElement('option');
+        option.value = grade;
+        option.textContent = grade.replace('Grade_', 'Grade ');
+        gradeSelect.appendChild(option);
+      });
+
+      // Populate names
+      data.names.forEach(name => {
+        let option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        nameSelect.appendChild(option);
+      });
+    })
+    .catch(error => console.error('Error fetching directory data:', error));
+}
+
+// Call this function to initialize the dropdowns when the page loads or when needed
+getDirectoryData();
+
+</script>
 </body>
 </html>
