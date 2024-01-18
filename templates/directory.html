@@ -1,178 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Directory</title>
-<style>
-    body {
-        font-family: 'Arial', sans-serif;
-        background: #f7f7f7;
-        margin: 0;
-        padding: 20px;
-    }
-    .container {
-        max-width: 600px;
-        margin: 0 auto;
-        background: #fff;
-        padding: 20px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    select, .date-input {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 20px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 16px;
-    }
-    .button {
-        padding: 10px 20px;
-        background-color: #5cb85c;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-    }
-    .button:hover {
-        background-color: #4cae4c;
-    }
-    .pdf-list {
-        list-style-type: none;
-        padding: 0;
-    }
-    .pdf-list li {
-        background: #e9e9e9;
-        margin-bottom: 5px;
-        padding: 10px;
-        border-radius: 4px;
-    }
-    .pdf-list li a {
-        text-decoration: none;
-        color: #333;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Directory</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        select, button {
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #files {
+            margin-top: 20px;
+        }
+        .file-item {
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-    <h1>PDF Directory</h1>
-    <label for="gradeFilter">Grade:</label>
-    <select id="gradeFilter">
-        <option value="">Select Grade</option>
-        <!-- Grades will be dynamically loaded here -->
-    </select>
+    <div class="container">
+        <h2>Student Directory</h2>
+        <form action="/directory" method="post">
+            <label for="grade">Grade:</label>
+            <select name="grade" id="grade" onchange="updateStudents()">
+                <option>Select Grade</option>
+                {% for grade in grades %}
+                <option value="{{ grade }}">{{ grade }}</option>
+                {% endfor %}
+            </select>
 
-    <label for="nameFilter">Name:</label>
-    <select id="nameFilter">
-        <option value="">Select Name</option>
-        <!-- Names will be dynamically loaded based on grade -->
-    </select>
+            <label for="student">Student:</label>
+            <select name="student" id="student">
+                <option>Select Student</option>
+                {% for student in students %}
+                <option value="{{ student }}">{{ student }}</option>
+                {% endfor %}
+            </select>
 
-    <label for="dateFilter">Date:</label>
-    <input type="date" id="dateFilter" class="date-input">
+            <button type="submit">Filter</button>
+        </form>
 
-    <button class="button" onclick="filterPDFs()">Filter PDFs</button>
+        <div id="files"></div>
+    </div>
 
-    <ul id="pdfList" class="pdf-list">
-        <!-- PDF links will be dynamically loaded here -->
-    </ul>
-</div>
+    <script>
+        function updateStudents() {
+            $.post('/get-files', {
+                grade: $('#grade').val()
+            }, function(files) {
+                $('#files').empty();
+                files.forEach(function(file) {
+                    var fileItem = $('<div class="file-item"></div>');
+                    fileItem.append('<input type="checkbox" name="files[]" value="' + file + '"> ' + file);
+                    $('#files').append(fileItem);
+                });
+            });
+        }
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  fetch('/get_directory_data')
-    .then(response => response.json())
-    .then(data => {
-      const gradeSelect = document.getElementById('gradeFilter');
-      const nameSelect = document.getElementById('nameFilter');
-      
-      // Populate the grades dropdown
-      data.grades.forEach(grade => {
-        let option = document.createElement('option');
-        option.value = grade;
-        option.textContent = grade.replace('_', ' ');
-        gradeSelect.appendChild(option);
-      });
-    })
-    .catch(error => console.error('Error fetching directory data:', error));
+        function downloadFiles() {
+            var grade = $('#grade').val();
+            var selectedFiles = [];
+            $('input[name="files[]"]:checked').each(function() {
+                selectedFiles.push($(this).val());
+            });
 
-  gradeSelect.addEventListener('change', function() {
-    // Clear current names
-    nameSelect.innerHTML = '<option value="">Select Name</option>';
-    
-    // Fetch and populate names based on selected grade
-    const selectedGrade = this.value;
-    fetch(`/get_names_by_grade/${selectedGrade}`)
-      .then(response => response.json())
-      .then(names => {
-        names.forEach(name => {
-          let option = document.createElement('option');
-          option.value = name;
-          option.textContent = name;
-          nameSelect.appendChild(option);
-        });
-      })
-      .catch(error => console.error('Error fetching names:', error));
-  });
-});
-
-function filterPDFs() {
-  const grade = document.getElementById('gradeFilter').value;
-  const name = document.getElementById('nameFilter').value;
-  const date = document.getElementById('dateFilter').value;
-  const pdfList = document.getElementById('pdfList');
-
-  // Clear current PDFs
-  pdfList.innerHTML = '';
-
-  // Construct the query
-  const query = `grade=${grade}&name=${name}&date=${date}`;
-
-  fetch(`/filter_pdfs?${query}`)
-    .then(response => response.json())
-    .then(pdfs => {
-      pdfs.forEach(pdf => {
-        let li = document.createElement('li');
-        let a = document.createElement('a');
-        a.href = `/download_pdf/${pdf}`;
-        a.textContent = pdf;
-        li.appendChild(a);
-        pdfList.appendChild(li);
-      });
-    })
-    .catch(error => console.error('Error fetching PDFs:', error));
+            if (selectedFiles.length > 0) {
+                $.ajax({
+                    url: '/download',
+                    type: 'POST',
+                    data: JSON.stringify({ grade: grade, files: selectedFiles }),
+                    contentType: 'application/json;charset=UTF-8',
+                    success: function(response) {
+                        var blob = new Blob([response], {type: 'application/zip'});
+                        var downloadUrl = URL.createObjectURL(blob);
+                        var a = document.createElement("a");
+                        a.href = downloadUrl;
+                        a.download = "files.zip";
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(function() {
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(downloadUrl);  
+                        }, 100); 
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error in file download: " + error);
+                    }
+                });
+            } else {
+                alert("Please select at least one file to download.");
+            }
 }
-function getDirectoryData() {
-  fetch('/get_directory_data')
-    .then(response => response.json())
-    .then(data => {
-      // Assuming you have select elements with ids 'grade-select' and 'name-select'
-      const gradeSelect = document.getElementById('grade-select');
-      const nameSelect = document.getElementById('name-select');
-
-      // Populate grades
-      data.grades.forEach(grade => {
-        let option = document.createElement('option');
-        option.value = grade;
-        option.textContent = grade.replace('Grade_', 'Grade ');
-        gradeSelect.appendChild(option);
-      });
-
-      // Populate names
-      data.names.forEach(name => {
-        let option = document.createElement('option');
-        option.value = name;
-        option.textContent = name;
-        nameSelect.appendChild(option);
-      });
-    })
-    .catch(error => console.error('Error fetching directory data:', error));
-}
-
-// Call this function to initialize the dropdowns when the page loads or when needed
-getDirectoryData();
-
-</script>
+    </script>
 </body>
 </html>

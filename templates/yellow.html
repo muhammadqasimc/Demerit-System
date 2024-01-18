@@ -116,6 +116,9 @@
 <label>Notes:</label>
 <input id="notes" name="notes" type="text"/>
 <br/>
+<button type="button" id="saveDraft">Save Draft</button>
+
+<br/>
 <input type="submit" value="Submit"/>
 </form>
 <!-- Student Signature Modal -->
@@ -146,6 +149,37 @@
 </div>
 </div>
 </div>
+
+
+<!-- this for the drafts -->
+<script>
+    document.getElementById('saveDraft').addEventListener('click', function() {
+    var formData = {};
+    // Assuming you're using input fields, you'll replace 'inputName' with your field names
+    document.querySelectorAll('input, select, textarea').forEach(function(input) {
+        formData[input.name] = input.value;
+    });
+    localStorage.setItem('formDraft', JSON.stringify(formData));
+    alert('Draft saved!');
+});
+
+// On page load, check for saved draft
+window.onload = function() {
+    var savedDraft = localStorage.getItem('formDraft');
+    if (savedDraft) {
+        savedDraft = JSON.parse(savedDraft);
+        Object.keys(savedDraft).forEach(function(key) {
+            var input = document.querySelector(`[name="${key}"]`);
+            if (input) {
+                input.value = savedDraft[key];
+            }
+        });
+    }
+};
+
+</script>
+
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

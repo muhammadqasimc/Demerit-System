@@ -1,6 +1,7 @@
 import base64
 import io
 import uuid
+import zipfile
 from flask import abort, current_app
 from zipfile import ZipFile
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session, send_from_directory
@@ -106,98 +107,158 @@ submissions_pending_approval = load_pending_submissions()
 # Dummy user data for demonstration purposes
 users = {
     'JAMESON A -4': {
+        'email': 'jamesona@kismet.com',
+        'secondary_username': 'Ajameson',
         'password': 'password123',
         'is_admin': True
     },
     'KGONGWANA E -20': {
+        'email': 'Kongwana@kismet.com',
+        'secondary_username': 'Kongwana',
         'password': 'userpassword',
         'is_admin': False
     },
     'VARGHESE S -16': {
+        'email': 'Varghese@kismet.com',
+        'secondary_username': 'Varghese',
         'password': 'randompassword1',
         'is_admin': False
     },
     'JOHN B -14': {
+        'email': 'John@kismet.com',
+        'secondary_username': 'John',
         'password': 'randompassword2',
         'is_admin': False
     },
     'JOUBERT R -2': {
+        'email': 'Joubert@kismet.com',
+        'secondary_username': 'Joubert',
         'password': 'randompassword3',
         'is_admin': False
     },
     'JAMESON C -12': {
+        'email': 'Cjameson@kismet.com',
+        'secondary_username': 'Cjameson',
         'password': 'randompassword4',
         'is_admin': False
     },
     'BESTER N -17': {
+        'email': 'Bester@kismet.com',
+        'secondary_username': 'Bester',
         'password': 'randompassword5',
         'is_admin': False
     },
     'CLAASSENS CH -22': {
+        'email': 'Claassens@kismet.com',
+        'secondary_username': 'Claassens',
         'password': 'randompassword6',
         'is_admin': False
     },
     'VAN EEDEN B -38': {
+        'email': 'Vaneeden@kismet.com',
+        'secondary_username': 'Betsie',
         'password': 'randompassword7',
         'is_admin': False
     },
     'GELDENHUYS SM -44': {
+        'email': 'Geldenhuys@kismet.com',
+        'secondary_username': 'Geldenhuys',
         'password': 'randompassword8',
         'is_admin': False
     },
     'MOSENTHAL V D -46': {
+        'email': 'Mosenthal@kismet.com',
+        'secondary_username': 'Mosenthal',
         'password': 'randompassword9',
         'is_admin': False
     },
     'BEZUIDENHOUT M -47': {
+        'email': 'Martine@kismet.com',
+        'secondary_username': 'Martine',
         'password': 'randompassword10',
         'is_admin': False
     },
     'STRYDOM F -48': {
+        'email': 'Strydom@kismet.com',
+        'secondary_username': 'Strydom',
         'password': 'randompassword11',
         'is_admin': False
     },
     'BRUWER B -51': {
+        'email': 'Ekongwana@kismet.com',
+        'secondary_username': 'Ekongwana',
         'password': 'randompassword12',
         'is_admin': False
     },
     'FOURIE L -49': {
+        'email': 'Ekongwana@kismet.com',
+        'secondary_username': 'Ekongwana',
         'password': 'randompassword13',
         'is_admin': False
     },
     'JANKOWITZ J -52': {
+        'email': 'Jankowitz@kismet.com',
+        'secondary_username': 'Jankowitz',
         'password': 'randompassword14',
         'is_admin': False
     },
     'TAYOB N -53': {
+        'email': 'Tayob@kismet.com',
+        'secondary_username': 'Nazmeera',
         'password': 'randompassword15',
         'is_admin': False
     },
     'PATTASSERIL BABU B -55': {
+        'email': 'Babu@kismet.com',
+        'secondary_username': 'Babu',
         'password': 'randompassword16',
         'is_admin': False
     },
     'GELDENHUYS H D -56': {
+        'email': 'Geldenhuys@kismet.com',
+        'secondary_username': 'Geldenhuys',
         'password': 'randompassword17',
         'is_admin': False
     },
     'GOOSEN C -57': {
+        'email': 'Goosen@kismet.com',
+        'secondary_username': 'Goosen',
         'password': 'randompassword18',
         'is_admin': False
     },
     'REDIKER L -58': {
+        'email': 'Rediker@kismet.com',
+        'secondary_username': 'Rediker',
         'password': 'randompassword19',
         'is_admin': False
     },
     'JONKER F -59': {
+        'email': 'Jonker@kismet.com',
+        'secondary_username': 'Jonker',
         'password': 'randompassword20',
         'is_admin': False
     },
     'DU TOIT WD -60': {
+        'email': 'Dutoit@kismet.com',
+        'secondary_username': 'Wahnice',
         'password': 'randompassword21',
         'is_admin': False
     },
-    'admin': {
+    'ghoor': {
+        'email': 'Ekongwana@kismet.com',
+        'secondary_username': 'Ekongwana',
+        'password': '786',
+        'is_admin': True
+    },
+    'M Greyling': {
+        'email': 'Greyling@kismet.com',
+        'secondary_username': 'Greyling',
+        'password': '123',
+        'is_admin': True
+    },
+    'MQ Cassim': {
+        'email': 'Mqcassim@kismet.com',
+        'secondary_username': 'MQLIZER',
         'password': '123',
         'is_admin': True
     }
@@ -206,8 +267,14 @@ users = {
 # Set a secret key for session management
 app.secret_key = os.urandom(24)
 
-def is_logged_in():
-    return 'username' in session
+def login_user(identifier, password):
+    for username, user_info in users.items():
+        if identifier in [user_info.get('email'), user_info.get('secondary_username')]:
+            if user_info['password'] == password:
+                session['username'] = username  # Store the primary username in the session
+                return True
+    return False
+
 
 
 @app.route('/')
@@ -287,11 +354,21 @@ def pink():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        identifier = request.form['username']  # This can be username, email, or secondary username
         password = request.form['password']
 
-        if username in users and password == users[username]['password']:
-            session['username'] = username
+        # Function to validate the user
+        def validate_user(identifier, password):
+            for username, user_info in users.items():
+                if identifier in [username, user_info.get('email'), user_info.get('secondary_username')] and password == user_info['password']:
+                    return username  # Return the primary username
+            return None
+
+        # Validate the user
+        valid_username = validate_user(identifier, password)
+
+        if valid_username:
+            session['username'] = valid_username
             return redirect(url_for('index'))
 
     return render_template('login.html')
@@ -345,43 +422,43 @@ def submit_form():
         offense_type = request.form.get('Type')
         offense_point = request.form.get('Point')
         
-        # # Handle the student's signature
-        # student_signature_data_url = request.form['student_signature']
-        # if student_signature_data_url:
-        #     # Generate a unique filename for the student's signature image
-        #     student_signature_filename = f'{selected_name}_{current_date}.png'
-        #     student_signature_path = os.path.join(signature_folder, student_signature_filename)
+        # Handle the student's signature
+        student_signature_data_url = request.form['student_signature']
+        if student_signature_data_url:
+            # Generate a unique filename for the student's signature image
+            student_signature_filename = f'{selected_name}_{current_date}.png'
+            student_signature_path = os.path.join(signature_folder, student_signature_filename)
 
-        #     # Convert the data URL back to an image and save it as a PNG
-        #     student_signature_image_data = student_signature_data_url.split(',')[1]
-        #     student_signature_image_binary = base64.b64decode(student_signature_image_data)
-        #     with open(student_signature_path, 'wb') as student_signature_file:
-        #         student_signature_file.write(student_signature_image_binary)
+            # Convert the data URL back to an image and save it as a PNG
+            student_signature_image_data = student_signature_data_url.split(',')[1]
+            student_signature_image_binary = base64.b64decode(student_signature_image_data)
+            with open(student_signature_path, 'wb') as student_signature_file:
+                student_signature_file.write(student_signature_image_binary)
 
-        # Generate a unique filename for the digital signature image
-        student_signature_filename = f'{selected_name}.png'
-        signature_path1 = os.path.join(signature_folder, student_signature_filename)
+        # # Generate a unique filename for the digital signature image
+        # student_signature_filename = f'{selected_name}.png'
+        # signature_path1 = os.path.join(signature_folder, student_signature_filename)
 
-        # Create an image with the selected name as signature
-        img1 = Image.new('RGB', (650, 250), color = (255, 255, 255))
-        d = ImageDraw.Draw(img1)
-        font = ImageFont.truetype("static/Andina Demo.otf", 48)  # Specify the path to a signature-style font file
-        d.text((10,10), selected_name, font=font, fill=(0,0,0))
+        # # Create an image with the selected name as signature
+        # img1 = Image.new('RGB', (650, 250), color = (255, 255, 255))
+        # d = ImageDraw.Draw(img1)
+        # font = ImageFont.truetype("static/Andina Demo.otf", 48)  # Specify the path to a signature-style font file
+        # d.text((10,10), selected_name, font=font, fill=(0,0,0))
 
-        # Generate a unique filename for the teacher digital signature image
-        teacher_signature_filename = f'{username}.png'
-        signature_path = os.path.join(signature_folder, teacher_signature_filename)
+        # # Generate a unique filename for the teacher digital signature image
+        # teacher_signature_filename = f'{username}.png'
+        # signature_path = os.path.join(signature_folder, teacher_signature_filename)
 
-        # Create an image with the selected name as signature
-        img = Image.new('RGB', (650, 250), color = (255, 255, 255))
-        d1 = ImageDraw.Draw(img)
-        font = ImageFont.truetype("static/Andina Demo.otf", 48)  # Specify the path to a signature-style font file
-        d1.text((10,10), username, font=font, fill=(0,0,0))
+        # # Create an image with the selected name as signature
+        # img = Image.new('RGB', (650, 250), color = (255, 255, 255))
+        # d1 = ImageDraw.Draw(img)
+        # font = ImageFont.truetype("static/Andina Demo.otf", 48)  # Specify the path to a signature-style font file
+        # d1.text((10,10), username, font=font, fill=(0,0,0))
 
-        # Save the signature image
+        # # Save the signature image
 
-        img1.save(signature_path1)
-        img.save(signature_path)
+        # img1.save(signature_path1)
+        # img.save(signature_path)
 
         # Handle the teacher's signature (similar code as above)
         teacher_signature_data_url = request.form['teacher_signature']
@@ -532,7 +609,7 @@ def approve_submission(index):
         pdf.cell(0, 30, txt="", border=1, ln=True)  # Cell for the signature with borders
 
         # Load and embed the student's signature image within the cell
-        student_signature_filename = f'{submission["Name"]}.png'
+        student_signature_filename = f'{submission["Name"]}_{submission["Date"]}.png'
         student_signature_path = os.path.join(signature_folder, student_signature_filename)
         pdf.image(student_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() - 25, w=0, h=20)  # Adjust position and size
 
@@ -545,7 +622,7 @@ def approve_submission(index):
         pdf.cell(0, 30, txt="", border=1, ln=True)  # Cell for the signature with borders
 
         # Load and embed the teacher's signature image within the cell
-        teacher_signature_filename = f'{submission["Username"]}.png'
+        teacher_signature_filename = f'{submission["Username"]}_{submission["Date"]}.png'
         teacher_signature_path = os.path.join(signature_folder, teacher_signature_filename)
         pdf.image(teacher_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() - 25, w=0, h=20)  # Adjust position and size
 
@@ -682,133 +759,87 @@ def reset_mdb():
     # Redirect to the admin page or another appropriate page
     return redirect(url_for('admin'))
 
+@app.route('/drafts')
+def drafts():
+    return render_template('drafts.html')
+
+@app.route('/get-names', methods=['GET'])
+def get_names():
+    df = pd.read_csv('pending_submissions.csv')
+    names = df['Name'].tolist()
+    return jsonify(names)
+
+@app.route('/get-record', methods=['GET'])
+def get_record():
+    name = request.args.get('name')
+    df = pd.read_csv('pending_submissions.csv')
+    record = df[df['Name'] == name].to_dict(orient='records')
+    return jsonify(record[0] if record else {})
+
+@app.route('/update-record', methods=['POST'])
+def update_record():
+    data = request.json
+    df = pd.read_csv('pending_submissions.csv')
+
+    # Extract the name and the new notes value from the request data
+    name = data.get('Name')
+    new_notes = data.get('Notes')
+
+    # Check if the name exists in the DataFrame
+    if name in df['Name'].values:
+        # Update the 'Notes' column for the row where 'Name' matches
+        df.loc[df['Name'] == name, 'Notes'] = new_notes
+        df.to_csv('pending_submissions.csv', index=False)
+        return jsonify({"status": "success"})
+    else:
+        return jsonify({"error": "Name not found"}), 404
+
+
+
 @app.route('/logout')
 def logout():
     session.pop('username', None)  # Remove the username from the session
     return redirect(url_for('login'))
 
 
-@app.route('/get_directory_data', methods=['GET'])
-def get_directory_data():
-    base_directory = os.path.join(os.getcwd(), 'Demerits')
-    
-    grades = set()
-    names = set()
 
-    # Walk through the directory to gather grade folders and names from filenames
-    for root, dirs, files in os.walk(base_directory):
-        for dir in dirs:
-            if dir.startswith('Grade_'):
-                grades.add(dir)
-        for file in files:
-            if file.endswith('.pdf'):
-                # Assuming the filename format is 'Name_Date.pdf'
-                name = file.split('_')[0]  # This gets the name part of the file
-                names.add(name)
-
-    return jsonify({
-        'grades': list(grades),
-        'names': list(names)
-    })
-
-def filter_pdfs():
-    # Extract query parameters from the request
-    grade = request.args.get('grade')
-    name = request.args.get('name')
-    date = request.args.get('date')
-
-    # Base directory where the PDFs are stored
-    base_directory = os.path.join(os.getcwd(), 'Demerits')
-
-    # Filter PDFs based on the provided parameters
-    filtered_pdfs = []
-    for root, dirs, files in os.walk(base_directory):
-        for file in files:
-            if file.endswith('.pdf'):
-                if grade and f"Grade_{grade}" not in root:
-                    continue
-                if name and name not in file:
-                    continue
-                if date and date not in file:
-                    continue
-                filtered_pdfs.append(file)
-
-    return jsonify(filtered_pdfs)
-
-@app.route('/directory')
+@app.route('/directory', methods=['GET', 'POST'])
 def directory():
-    # This will render a template called 'directory.html'
-    # You need to create this HTML template and include the necessary JavaScript for filtering and downloading
-    return render_template('directory.html')
+    grades = [folder for folder in os.listdir('Demerits') if os.path.isdir(f'Demerits/{folder}')]
+    selected_grade = request.form.get('grade')
+    students = []
 
+    if selected_grade:
+        students = os.listdir(f'Demerits/{selected_grade}')
+        students = [student.split('_')[0] for student in students]  # Assuming names are the first part of the file name
+        students = list(set(students))  # Remove duplicates
 
-@app.route('/get_pdfs', methods=['POST'])
-def get_pdfs():
-    # This will handle the AJAX request from the frontend to get the list of PDFs
-    # You can pass filtering parameters from the frontend to this function
-    data = request.json
-    grade_filter = data.get('grade')
-    name_filter = data.get('name')
-    date_filter = data.get('date')
-    
-    pdfs = []
-    base_dir = 'Demerits'  # Base directory where PDFs are stored
+    return render_template('directory.html', grades=grades, students=students)
 
-    for root, dirs, files in os.walk(base_dir):
+@app.route('/get-files', methods=['POST'])
+def get_files():
+    grade = request.form.get('grade')
+    student = request.form.get('student')
+    files = os.listdir(f'Demerits/{grade}')
+    student_files = [file for file in files if student in file]
+
+    # Assuming date format is YYYY-MM-DD in the file name
+    student_files.sort(key=lambda x: datetime.strptime(x.split('_')[-1].split('.')[0], '%Y-%m-%d'))
+    return jsonify(student_files)
+
+@app.route('/download', methods=['POST'])
+def download():
+    grade = request.form.get('grade')
+    files = request.form.getlist('files[]')
+    memory_file = BytesIO()
+
+    with zipfile.ZipFile(memory_file, 'w') as zf:
         for file in files:
-            if file.endswith('.pdf'):
-                file_path = os.path.join(root, file)
-                file_stats = os.stat(file_path)
-                file_date = datetime.fromtimestamp(file_stats.st_mtime).strftime('%Y-%m-%d')
-                file_grade = root.split('_')[-1]  # Assumes the format 'Demerits/Grade_X'
+            path = f'Demerits/{grade}/{file}'
+            zf.write(path, arcname=file)
 
-                # Apply filters if they are provided
-                if grade_filter and grade_filter not in file_grade:
-                    continue
-                if name_filter and name_filter not in file:
-                    continue
-                if date_filter and date_filter != file_date:
-                    continue
-                
-                pdf_info = {
-                    'name': file,
-                    'date': file_date,
-                    'grade': file_grade,
-                    'path': file_path
-                }
-                pdfs.append(pdf_info)
-    
-    return jsonify(pdfs)
-
-
-@app.route('/download_pdf/<path:filename>')
-def download_pdf(filename):
-    # Log the requested filename for debugging
-    print(f"Requested filename: {filename}")
-
-    # This is the correct path to the Demerits directory
-    demerits_directory = os.path.join(current_app.root_path, 'Demerits')
-    print(f"Demerits directory: {demerits_directory}")
-
-    # The filename should be a relative path like 'Grade_12/Ahmed_SHALABI_2023-10-07.pdf'
-    # Make sure the 'filename' parameter does not include 'Demerits/' as it is already in 'demerits_directory'
-    if filename.startswith('Demerits/'):
-        # If it does, strip it from the filename
-        filename = filename[len('Demerits/'):]
-
-    expected_path = os.path.join(demerits_directory, filename)
-    print(f"Expected path: {expected_path}")
-
-    if not os.path.exists(expected_path):
-        print("File does not exist.")
-        abort(404)
-
-    try:
-        # Now we pass the correct directory and filename to send_from_directory
-        return send_from_directory(directory=demerits_directory, path=filename, as_attachment=True)
-    except FileNotFoundError:
-        print(f"File not found: {filename}")
-        abort(404)
+    memory_file.seek(0)
+    return send_file(memory_file, attachment_filename='files.zip', as_attachment=True)
 
 
 if __name__ == '__main__':
