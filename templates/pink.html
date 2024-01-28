@@ -72,7 +72,7 @@
 <img alt="Logo" src="{{ url_for('static', filename='Logo.png') }}"/>
 <h1>Demerits Form</h1>
 </div>
-<form action="/submit_form" enctype="multipart/form-data" method="POST">
+<form id="demeritsForm" action="/submit_form" enctype="multipart/form-data" method="POST">
 <label for="grade">Select Grade:</label>
 <select id="grade" name="grade">
                 {% for grade in grades %}
@@ -84,10 +84,22 @@
 <select id="name" name="name">
 <option value="">-- Select a grade first --</option>
 </select>
+<input id="learner_id" name="learner_id" type="hidden" value=""/>
+
 <br/>
 <label>Select Offense:</label>
-<select name="offense"><option value="BEING IN POSSESION OF A CELLPHONE/UPLOADING VIDEOS TO SOCIAL MEDIA ">BEING IN POSSESION OF A CELLPHONE/UPLOADING VIDEOS TO SOCIAL MEDIA </option><option value="DISHONESTY e.g COPYING DURING TEST OR EXAMS, FORGING SIGNATURES">DISHONESTY e.g COPYING DURING TEST OR EXAMS, FORGING SIGNATURES</option><option value="DISRUPTING DETENTION CLASS/LEAVING DETENTION CLASS">DISRUPTING DETENTION CLASS/LEAVING DETENTION CLASS</option><option value="CONTINUOUS ABSENTEEISM OF DETENTION">CONTINUOUS ABSENTEEISM OF DETENTION</option><option value="INTENTIONAL CAUSING PHYSICAL INJURY TO SOMEBODY">INTENTIONAL CAUSING PHYSICAL INJURY TO SOMEBODY</option><option value="FIGHTING, BULLYING">FIGHTING, BULLYING</option><option value="VANDALISM OF SCHOOL PROPERTY/LEARNER/EDUCATOR">VANDALISM OF SCHOOL PROPERTY/LEARNER/EDUCATOR</option><option value="SERIOUS VANDELISM OF SCHOOL PROPERTY/LEARNER/EDUCATOR">SERIOUS VANDELISM OF SCHOOL PROPERTY/LEARNER/EDUCATOR</option><option value="CONTINUOUS MISDEMEANOURS AS MENTIONED IN CATEGORY 1">CONTINUOUS MISDEMEANOURS AS MENTIONED IN CATEGORY 1</option><option value="BEING IN POSSESSION OF OBJECTIONABLE ITEMS, OBJECTS">BEING IN POSSESSION OF OBJECTIONABLE ITEMS, OBJECTS</option><option value="DISRESPECT/VERBAL ABUSE/ RUDENESS/RACISM @ EDUCATOR">DISRESPECT/VERBAL ABUSE/ RUDENESS/RACISM @ EDUCATOR</option><option value="SERIOUS DISRUPTION OF LEARNING PROCESS IN CLASS">SERIOUS DISRUPTION OF LEARNING PROCESS IN CLASS</option><option value="TAKING PART IN A CONSPIRACY TO DISRUPT THE PROPER FUNCTIONING OF SCHOOL BY COLLECTIVE ACTIVITIES">TAKING PART IN A CONSPIRACY TO DISRUPT THE PROPER FUNCTIONING OF SCHOOL BY COLLECTIVE ACTIVITIES</option><option value="REPEATED DEFIANCE OF SCHOOL AUTHORITIES (EMOTIONAL ABUSE)">REPEATED DEFIANCE OF SCHOOL AUTHORITIES (EMOTIONAL ABUSE)</option><option value="IN POSSESION OF INTOXICANTS ALCOHOL/DRUGS/ TESTED POSITIVE">IN POSSESION OF INTOXICANTS ALCOHOL/DRUGS/ TESTED POSITIVE</option><option value="STEALING FORM A LEARNER/EDUCATOR">STEALING FORM A LEARNER/EDUCATOR</option></select>
-<br/>
+<select name="offense" id="offense-select">
+    {% for offense in offenses %}
+        <option value="{{ offense['Description'] }}" data-code="{{ offense['Code'] }}" data-level="{{ offense['Level'] }}" data-type="{{ offense['Type'] }}" data-point="{{ offense['Point'] }}">
+            {{ offense['Description'] }}
+        </option>
+    {% endfor %}
+</select><br/>
+<input type="hidden" name="Id">
+        <input type="hidden" name="Level">
+        <input type="hidden" name="Code">
+        <input type="hidden" name="Type">
+        <input type="hidden" name="Point">
 <label>Draw Student Signature:</label>
 <button id="openStudentSignatureModal" type="button">Student Signature</button>
 <input id="student_signature" name="student_signature" type="hidden"/>
@@ -103,6 +115,9 @@
 <br/>
 <label>Notes:</label>
 <input id="notes" name="notes" type="text"/>
+<br/>
+
+
 <br/>
 <input type="submit" value="Submit"/>
 </form>
@@ -135,26 +150,26 @@
 </div>
 </div>
 
+
+
+
+
 <script>
-    const offensesDataPink = {'BEING IN POSSESION OF A CELLPHONE/UPLOADING VIDEOS TO SOCIAL MEDIA ': {'Id': 165, 'Level': 2, 'Code': '2-13', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 4}, 'DISHONESTY e.g COPYING DURING TEST OR EXAMS, FORGING SIGNATURES': {'Id': 166, 'Level': 2, 'Code': '2-4', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 4}, 'DISRUPTING DETENTION CLASS/LEAVING DETENTION CLASS': {'Id': 167, 'Level': 2, 'Code': '2-18', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 4}, 'CONTINUOUS ABSENTEEISM OF DETENTION': {'Id': 168, 'Level': 2, 'Code': '2-17', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 4}, 'INTENTIONAL CAUSING PHYSICAL INJURY TO SOMEBODY': {'Id': 169, 'Level': 3, 'Code': '3-9', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 6}, 'FIGHTING, BULLYING': {'Id': 170, 'Level': 2, 'Code': '2-14', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 4}, 'VANDALISM OF SCHOOL PROPERTY/LEARNER/EDUCATOR': {'Id': 171, 'Level': 2, 'Code': '2-19', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 4}, 'SERIOUS VANDELISM OF SCHOOL PROPERTY/LEARNER/EDUCATOR': {'Id': 172, 'Level': 3, 'Code': '3-14', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 6}, 'CONTINUOUS MISDEMEANOURS AS MENTIONED IN CATEGORY 1': {'Id': 202, 'Level': 2, 'Code': '2-20', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 4}, 'BEING IN POSSESSION OF OBJECTIONABLE ITEMS, OBJECTS': {'Id': 203, 'Level': 2, 'Code': '2-21', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 4}, 'DISRESPECT/VERBAL ABUSE/ RUDENESS/RACISM @ EDUCATOR': {'Id': 204, 'Level': 2, 'Code': '2-22', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 4}, 'SERIOUS DISRUPTION OF LEARNING PROCESS IN CLASS': {'Id': 206, 'Level': 2, 'Code': '2-23', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 4}, 'TAKING PART IN A CONSPIRACY TO DISRUPT THE PROPER FUNCTIONING OF SCHOOL BY COLLECTIVE ACTIVITIES': {'Id': 207, 'Level': 2, 'Code': '2-24', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 4}, 'REPEATED DEFIANCE OF SCHOOL AUTHORITIES (EMOTIONAL ABUSE)': {'Id': 230, 'Level': 3, 'Code': '3-07', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 6}, 'IN POSSESION OF INTOXICANTS ALCOHOL/DRUGS/ TESTED POSITIVE': {'Id': 231, 'Level': 3, 'Code': '3-00', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 6}, 'STEALING FORM A LEARNER/EDUCATOR': {'Id': 234, 'Level': 3, 'Code': '3-15', 'EditStatus': 'C', 'AfrDesc': nan, 'Type': 'D', 'Point': 6}};
-
-    document.querySelector('select[name="offense"]').addEventListener('change', function(event) {
-        const selectedDescription = event.target.value;
-        const selectedData = offensesDataPink[selectedDescription];
-
-        // Iterate through the data and populate hidden inputs
-        for (const [key, value] of Object.entries(selectedData)) {
-            let input = document.querySelector(`input[name="${key}"]`);
-            if (!input) {
-                input = document.createElement("input");
-                input.type = "hidden";
-                input.name = key;
-                document.body.appendChild(input);
-            }
-            input.value = value;
-        }
+    document.addEventListener('DOMContentLoaded', function() {
+        var selectElement = document.getElementById('offense-select');
+        selectElement.addEventListener('change', function() {
+            // Find the selected option
+            var selectedOption = selectElement.options[selectElement.selectedIndex];
+            
+            // Update hidden input fields
+            document.getElementsByName('Level')[0].value = selectedOption.getAttribute('data-level');
+            document.getElementsByName('Code')[0].value = selectedOption.getAttribute('data-code');
+            document.getElementsByName('Type')[0].value = selectedOption.getAttribute('data-type');
+            document.getElementsByName('Point')[0].value = selectedOption.getAttribute('data-point');
+        });
     });
 </script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
 
 <script>
@@ -238,28 +253,43 @@
         });
     </script>
 <script>
-        document.getElementById('grade').addEventListener('change', function () {
-            var selectedGrade = this.value;
-            var namesSelect = document.getElementById('name');
-    
-            // Clear the current options
-            namesSelect.innerHTML = '<option value="">-- Select a name --</option>';
-    
-            // Fetch the names for the selected grade from the server
-            fetch(`/get_names_by_grade/${selectedGrade}`)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(function (name) {
-                        var option = document.createElement('option');
-                        option.value = name;
-                        option.text = name;
-                        namesSelect.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
+document.getElementById('grade').addEventListener('change', function () {
+    var selectedGrade = this.value;
+    var namesSelect = document.getElementById('name');
+
+    // Clear the current options
+    namesSelect.innerHTML = '<option value="">-- Select a name --</option>';
+
+    // Fetch the names and IDs for the selected grade from the server
+    fetch(`/get_names_by_grade/${selectedGrade}`)
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(function (item) {
+                var option = document.createElement('option');
+                option.value = item.Name;  // Use Name as the value
+                option.text = item.Name;  // Display the name
+                option.setAttribute('data-learnerid', item.Learnerid);  // Store Learner ID in a data attribute
+                namesSelect.appendChild(option);
+            });
+            console.log('Dropdown populated.');
+        })
+        .catch(error => {
+            console.error('Error:', error);
         });
+});
+
+// Move the definition of learnerIdInput inside the event listener
+// Add event listener to the name dropdown to update the learner_id hidden field
+document.getElementById('name').addEventListener('change', function () {
+    // Define learnerIdInput within the scope of the event listener
+    var learnerIdInput = document.getElementById('learner_id');
+    var selectedOption = this.options[this.selectedIndex];
+    var learnerId = selectedOption.getAttribute('data-learnerid');  // Get the Learner ID from the data attribute
+    learnerIdInput.value = learnerId;  // Update hidden input with the Learner ID
+    console.log('Learner ID set to:', learnerId);  // For debugging
+});
+
+
     </script>
 </body>
 </html>

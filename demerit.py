@@ -256,10 +256,10 @@ users = {
         'password': '123',
         'is_admin': True
     },
-    'MQ Cassim': {
+    'MQ': {
         'email': 'Mqcassim@kismet.com',
-        'secondary_username': 'MQLIZER',
-        'password': '123',
+        'secondary_username': 'Mq',
+        'password': '7867',
         'is_admin': True
     }
 }
@@ -347,7 +347,14 @@ def pink():
         names_by_grade = {}
         for grade in grades:
             names_by_grade[grade] = df[df['Grade'] == grade]['Name'].tolist()
-        return render_template('pink.html', grades=grades, namesByGrade=names_by_grade)
+
+        # Read the offenses from the CSV file
+        pinkoffenses_df = pd.read_csv('pinkcodes.csv')
+        
+        # Convert the DataFrame to a list of dictionaries for easy handling in the template
+        pinkoffenses_list = pinkoffenses_df.to_dict(orient='records')
+
+        return render_template('pink.html', grades=grades, offenses=pinkoffenses_list, namesByGrade=names_by_grade)
     else:
         return redirect(url_for('login'))
 
