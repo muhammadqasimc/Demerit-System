@@ -307,7 +307,14 @@ def green():
         names_by_grade = {}
         for grade in grades:
             names_by_grade[grade] = df[df['Grade'] == grade]['Name'].tolist()
-        return render_template('green.html', grades=grades, namesByGrade=names_by_grade)
+
+        # Read the offenses from the CSV file
+        greenoffenses_df = pd.read_csv('greencodes.csv')
+        
+        # Convert the DataFrame to a list of dictionaries for easy handling in the template
+        greenoffenses_list = greenoffenses_df.to_dict(orient='records')
+
+        return render_template('green.html', grades=grades, offenses=greenoffenses_list, namesByGrade=names_by_grade)
     else:
         return redirect(url_for('login'))
 

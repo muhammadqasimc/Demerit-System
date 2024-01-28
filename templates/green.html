@@ -1,12 +1,13 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demerits Form</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.css">
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Demerits Form</title>
+<link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.css" rel="stylesheet"/>
+<style>
         /* Your additional CSS styles here */
         .container {
             text-align: center;
@@ -66,112 +67,112 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <img src="{{ url_for('static', filename='Logo.png') }}" alt="Logo">
-            <h1>Demerits Form</h1>
-        </div>
-
-        <form action="/submit_form" method="POST" enctype="multipart/form-data">
-
-            <label for="grade">Select Grade:</label>
-            <select id="grade" name="grade">
+<div class="container">
+<div class="header">
+<img alt="Logo" src="{{ url_for('static', filename='Logo.png') }}"/>
+<h1>Demerits Form</h1>
+</div>
+<form id="demeritsForm" action="/submit_form" enctype="multipart/form-data" method="POST">
+<label for="grade">Select Grade:</label>
+<select id="grade" name="grade">
                 {% for grade in grades %}
                     <option value="{{ grade }}">{{ grade }}</option>
                 {% endfor %}
             </select>
-            <br>
-            <label for="name">Select Name:</label>
-            <select id="name" name="name">
-                <option value="">-- Select a grade first --</option>
-            </select>
-            <br>
-            <label>Select Offense:</label>
-            <select name="offense">
-                <option value="NEGLECTING HOMEWORK/HOMEWORK NOT DONE">NEGLECTING HOMEWORK/HOMEWORK NOT DONE</option>
-                <option value="RUDE TOWARDS EDUCATOR/LEARNER/STAFF MEMBER">RUDE TOWARDS EDUCATOR/LEARNER/STAFF MEMBER</option>
-                <option value="TEXT BOOKS & SCRIPTS NOT AVAILABLE">TEXT BOOKS & SCRIPTS NOT AVAILABLE</option>
-                <option value="DISOBEDIENCE, NOT LISTENING IN CLASS">DISOBEDIENCE, NOT LISTENING IN CLASS</option>
-                <option value="LITTERING, EATING OR DRINKING IN CLASS/CHEWING IN CLASS">LITTERING, EATING OR DRINKING IN CLASS/CHEWING IN CLASS</option>
-                <option value="LATE COMING (AFTER 3 MINUTES) TO CLASS">LATE COMING (AFTER 3 MINUTES) TO CLASS</option>
-                <option value="COPYING OF WORK OR ALLOWING OTHER LEARNER TO COPY">COPYING OF WORK OR ALLOWING OTHER LEARNER TO COPY</option>
-                <option value="FORBIDDEN PLACES E.G GIRL IN BOY'S TOILET">FORBIDDEN PLACES E.G GIRL IN BOY'S TOILET</option>
-                <option value="DISOBEYING APPEARANCE & SCHOOL UNIFORM RULES">DISOBEYING APPEARANCE & SCHOOL UNIFORM RULES</option>
-                <option value="DISRUPTING CLASS/TEACHING">DISRUPTING CLASS/TEACHING</option>
-                <option value="FOUL LANGUAGE e.g TOWARDS EDUCATOR/LEARNER/STAFF">FOUL LANGUAGE e.g TOWARDS EDUCATOR/LEARNER/STAFF</option>
-                <option value="LATE COMING TO SCHOOL OR SCHOOL ACTIVITIES">LATE COMING TO SCHOOL OR SCHOOL ACTIVITIES</option>
-                <option value="NEGLECTING SCHOOL REPORTS/BOOKS TO BE SIGNED BY PARENTS ETC">NEGLECTING SCHOOL REPORTS/BOOKS TO BE SIGNED BY PARENTS ETC</option>
-                <option value="NOT ATTENDING RELIEF CLASS">NOT ATTENDING RELIEF CLASS</option>
-                <option value="TASK NOT SUBMITTED/CLASS WORK BOOK/ WORK NOT UP TO DATE">TASK NOT SUBMITTED/CLASS WORK BOOK/ WORK NOT UP TO DATE</option>
-                <option value="LEAVING CLASS WITHOUT PERMISSION">LEAVING CLASS WITHOUT PERMISSION</option>
-                <option value="WRITING IN TEXT BOOK/BOOKS NOT COVERED">WRITING IN TEXT BOOK/BOOKS NOT COVERED</option>
-                <option value="BUNKING CLASS">BUNKING CLASS</option>
-                <option value="DISHONESTY WITH MINOR CONSEQUENCES">DISHONESTY WITH MINOR CONSEQUENCES</option>
-                <option value="SLEEPING IN CLASS">SLEEPING IN CLASS</option>
-                <option value="PURPOSEFUL ABSENCE FROM SCHOOL /SCHOOL FUNCTIONS">PURPOSEFUL ABSENCE FROM SCHOOL /SCHOOL FUNCTIONS</option>
-                <option value="PLAYING SOCCER WITHOUT PRIOR CONSENT/IN THE ASSEMBLY AREA">PLAYING SOCCER WITHOUT PRIOR CONSENT/IN THE ASSEMBLY AREA</option>
-                <option value="PLAYING SOCCER WITHOUT CONSENT DURING CLASS TIME">PLAYING SOCCER WITHOUT CONSENT DURING CLASS TIME</option>
-                <option value="MINOR TROUBLING OTHER LEARNER/S">MINOR TROUBLING OTHER LEARNER/S</option>
-                <option value="NECKING ON SCHOOL PREMISES, SCHOOL FUNCTIONS">NECKING ON SCHOOL PREMISES, SCHOOL FUNCTIONS</option>
-                <option value="ENTERING CLASS WITHOUT PERMISSION">ENTERING CLASS WITHOUT PERMISSION</option>
-            </select>
+<br/>
+<label for="name">Select Name:</label>
+<select id="name" name="name">
+<option value="">-- Select a grade first --</option>
+</select>
+<input id="learner_id" name="learner_id" type="hidden" value=""/>
+
+<br/>
+<label>Select Offense:</label>
+<select name="offense" id="offense-select">
+    {% for offense in offenses %}
+        <option value="{{ offense['Description'] }}" data-code="{{ offense['Code'] }}" data-level="{{ offense['Level'] }}" data-type="{{ offense['Type'] }}" data-point="{{ offense['Point'] }}">
+            {{ offense['Description'] }}
+        </option>
+    {% endfor %}
+</select><br/>
+<input type="hidden" name="Id">
+        <input type="hidden" name="Level">
+        <input type="hidden" name="Code">
+        <input type="hidden" name="Type">
+        <input type="hidden" name="Point">
+<label>Draw Student Signature:</label>
+<button id="openStudentSignatureModal" type="button">Student Signature</button>
+<input id="student_signature" name="student_signature" type="hidden"/>
+<label>Draw Teacher Signature:</label>
+<button id="openTeacherSignatureModal" type="button">Teacher Signature</button>
+<input id="teacher_signature" name="teacher_signature" type="hidden"/>
+<label>Draw Witness Signature:</label>
+<button id="openWitnessSignatureModal" type="button">Witness Signature</button>
+<input id="witness_signature" name="witness_signature" type="hidden"/>
+<br/>
+<label>Attach Photo:</label>
+<input accept="image/*" name="photo" type="file"/>
+<br/>
+<label>Notes:</label>
+<input id="notes" name="notes" type="text"/>
+<br/>
+
+
+<br/>
+<input type="submit" value="Submit"/>
+</form>
+<!-- Student Signature Modal -->
+<div class="modal" id="studentSignatureModal">
+<div class="modal-content">
+<h2>Student Signature</h2>
+<canvas height="150" id="studentSignatureCanvas" width="300"></canvas>
+<button id="clearStudentSignature">Clear Signature</button>
+<button id="saveStudentSignature">Save Signature</button>
+</div>
+</div>
+<!-- Teacher Signature Modal -->
+<div class="modal" id="teacherSignatureModal">
+<div class="modal-content">
+<h2>Teacher Signature</h2>
+<canvas height="150" id="teacherSignatureCanvas" width="300"></canvas>
+<button id="clearTeacherSignature">Clear Signature</button>
+<button id="saveTeacherSignature">Save Signature</button>
+</div>
+</div>
+<!-- Witness Signature Modal -->
+<div class="modal" id="witnessSignatureModal">
+<div class="modal-content">
+<h2>Witness Signature</h2>
+<canvas height="150" id="witnessSignatureCanvas" width="300"></canvas>
+<button id="clearWitnessSignature">Clear Signature</button>
+<button id="saveWitnessSignature">Save Signature</button>
+</div>
+</div>
+</div>
+
+
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var selectElement = document.getElementById('offense-select');
+        selectElement.addEventListener('change', function() {
+            // Find the selected option
+            var selectedOption = selectElement.options[selectElement.selectedIndex];
             
-            <br>
-            <label>Draw Student Signature:</label>
-            <button type="button" id="openStudentSignatureModal">Student Signature</button>
-            <input type="hidden" name="student_signature" id="student_signature">
+            // Update hidden input fields
+            document.getElementsByName('Level')[0].value = selectedOption.getAttribute('data-level');
+            document.getElementsByName('Code')[0].value = selectedOption.getAttribute('data-code');
+            document.getElementsByName('Type')[0].value = selectedOption.getAttribute('data-type');
+            document.getElementsByName('Point')[0].value = selectedOption.getAttribute('data-point');
+        });
+    });
+</script>
 
-            <label>Draw Teacher Signature:</label>
-            <button type="button" id="openTeacherSignatureModal">Teacher Signature</button>
-            <input type="hidden" name="teacher_signature" id="teacher_signature">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
 
-            <label>Draw Witness Signature:</label>
-            <button type="button" id="openWitnessSignatureModal">Witness Signature</button>
-            <input type="hidden" name="witness_signature" id="witness_signature">
-
-            <br>
-            <label>Attach Photo:</label>
-            <input type="file" name="photo" accept="image/*">
-            <br>
-            <label>Notes:</label>
-            <input type="text" name="notes" id="notes">
-            <br>
-            <input type="submit" value="Submit">
-        </form>
-
-        <!-- Student Signature Modal -->
-        <div id="studentSignatureModal" class="modal">
-            <div class="modal-content">
-                <h2>Student Signature</h2>
-                <canvas id="studentSignatureCanvas" width="300" height="150"></canvas>
-                <button id="clearStudentSignature">Clear Signature</button>
-                <button id="saveStudentSignature">Save Signature</button>
-            </div>
-        </div>
-
-        <!-- Teacher Signature Modal -->
-        <div id="teacherSignatureModal" class="modal">
-            <div class="modal-content">
-                <h2>Teacher Signature</h2>
-                <canvas id="teacherSignatureCanvas" width="300" height="150"></canvas>
-                <button id="clearTeacherSignature">Clear Signature</button>
-                <button id="saveTeacherSignature">Save Signature</button>
-            </div>
-        </div>
-
-        <!-- Witness Signature Modal -->
-        <div id="witnessSignatureModal" class="modal">
-            <div class="modal-content">
-                <h2>Witness Signature</h2>
-                <canvas id="witnessSignatureCanvas" width="300" height="150"></canvas>
-                <button id="clearWitnessSignature">Clear Signature</button>
-                <button id="saveWitnessSignature">Save Signature</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
-    <script>
+<script>
         // JavaScript code to handle signature modals and capture
         const studentSignatureModal = document.getElementById("studentSignatureModal");
         const teacherSignatureModal = document.getElementById("teacherSignatureModal");
@@ -251,29 +252,45 @@
             witnessSignatureModal.style.display = "none";
         });
     </script>
-    <script>
-        document.getElementById('grade').addEventListener('change', function () {
-            var selectedGrade = this.value;
-            var namesSelect = document.getElementById('name');
-    
-            // Clear the current options
-            namesSelect.innerHTML = '<option value="">-- Select a name --</option>';
-    
-            // Fetch the names for the selected grade from the server
-            fetch(`/get_names_by_grade/${selectedGrade}`)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(function (name) {
-                        var option = document.createElement('option');
-                        option.value = name;
-                        option.text = name;
-                        namesSelect.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
+<script>
+document.getElementById('grade').addEventListener('change', function () {
+    var selectedGrade = this.value;
+    var namesSelect = document.getElementById('name');
+
+    // Clear the current options
+    namesSelect.innerHTML = '<option value="">-- Select a name --</option>';
+
+    // Fetch the names and IDs for the selected grade from the server
+    fetch(`/get_names_by_grade/${selectedGrade}`)
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(function (item) {
+                var option = document.createElement('option');
+                option.value = item.Name;  // Use Name as the value
+                option.text = item.Name;  // Display the name
+                option.setAttribute('data-learnerid', item.Learnerid);  // Store Learner ID in a data attribute
+                namesSelect.appendChild(option);
+            });
+            console.log('Dropdown populated.');
+        })
+        .catch(error => {
+            console.error('Error:', error);
         });
+});
+
+// Move the definition of learnerIdInput inside the event listener
+// Add event listener to the name dropdown to update the learner_id hidden field
+document.getElementById('name').addEventListener('change', function () {
+    // Define learnerIdInput within the scope of the event listener
+    var learnerIdInput = document.getElementById('learner_id');
+    var selectedOption = this.options[this.selectedIndex];
+    var learnerId = selectedOption.getAttribute('data-learnerid');  // Get the Learner ID from the data attribute
+    learnerIdInput.value = learnerId;  // Update hidden input with the Learner ID
+    console.log('Learner ID set to:', learnerId);  // For debugging
+});
+
+
     </script>
 </body>
 </html>
+
