@@ -1,8 +1,9 @@
 import base64
 import io
+import traceback
 import uuid
 import zipfile
-from flask import abort, current_app
+from flask import Response, abort, current_app
 from zipfile import ZipFile
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session, send_from_directory
 import pandas as pd
@@ -42,6 +43,13 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 # Ensure the upload folder exists
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
+
+SIGNATURE_UPLOAD_FOLDER = "signature_uploads"
+app.config["SIGNATURE_UPLOAD_FOLDER"] = SIGNATURE_UPLOAD_FOLDER
+
+# Ensure the upload folder exists
+if not os.path.exists(SIGNATURE_UPLOAD_FOLDER):
+    os.makedirs(SIGNATURE_UPLOAD_FOLDER)
 
 
 # Lists to store submissions
@@ -421,6 +429,25 @@ def submit_form():
                 # Save the uploaded photo to the specified directory
                 photo.save(photo_path)
 
+        if request.method == "POST":
+            signature_photo = request.files["signature_photo"]
+
+            if signature_photo:
+                # Retrieve the selected name from the form data
+                selected_name = request.form["name"]
+
+                # Get the current date in the format YYYY-MM-DD
+                current_date = datetime.now().strftime("%d-%m-%y")
+
+                # Combine the selected name and current date to create the filename
+                raw_filename = f"{selected_name}_{current_date}.jpg"
+                filename = secure_filename(raw_filename)
+
+                signature_photo_path = os.path.join(app.config["SIGNATURE_UPLOAD_FOLDER"], filename)
+
+                # Save the uploaded photo to the specified directory
+                signature_photo.save(signature_photo_path)
+
                 
         selected_grade = request.form['grade']
         selected_name = request.form['name']
@@ -549,7 +576,7 @@ def approve_submission(index):
         approved_submissions.append(submission)
 
         # Create directory structure for the grade
-        grade_folder = os.path.join('Demerits', f'Grade_{submission["Grade"]}')
+        grade_folder = os.path.join('Demerits', f'Grade_{submission["Grade"]}', f'{submission["Name"]}')
         os.makedirs(grade_folder, exist_ok=True)
 
         # Get the current time in HH:MM format
@@ -612,6 +639,9 @@ def approve_submission(index):
         pdf.cell(column_width1, 10, txt="Offenses:", fill=True)
         pdf.cell(column_width, 10, txt=submission['Offenses'], ln=True)  # Multiline cell for offenses
 
+        pdf.cell(column_width1, 10, txt="Points:", fill=True)
+        pdf.cell(column_width, 10, txt=submission['offensePoint'], ln=True)
+
         pdf.ln(10)  # Add some space
 
         # Title for the student's signature cell
@@ -658,6 +688,8 @@ def approve_submission(index):
         # Extract the image filename from the submission data
         image_filename = f'{submission["Name"].replace(" ", "_")}_{submission["Date"]}.jpg'
         image_path = os.path.join(app.config["UPLOAD_FOLDER"], image_filename)
+
+        
 
 
         # Check if the image exists (it's good to have a safety check)
@@ -815,46 +847,90 @@ def logout():
     session.pop('username', None)  # Remove the username from the session
     return redirect(url_for('login'))
 
+BASE_DIR = 'Demerits'  # Base directory for the files
 
+def allowed_file(directory):
+    return os.path.commonprefix([os.path.abspath(directory), os.path.abspath(BASE_DIR)]) == os.path.abspath(BASE_DIR)
 
-@app.route('/directory', methods=['GET', 'POST'])
+@app.route('/directory')
 def directory():
-    grades = [folder for folder in os.listdir('Demerits') if os.path.isdir(f'Demerits/{folder}')]
-    selected_grade = request.form.get('grade')
-    students = []
+    return render_template('directory.html')
 
-    if selected_grade:
-        students = os.listdir(f'Demerits/{selected_grade}')
-        students = [student.split('_')[0] for student in students]  # Assuming names are the first part of the file name
-        students = list(set(students))  # Remove duplicates
+@app.route('/grades/<grade>')
+def get_students(grade):
+    directory = os.path.join(BASE_DIR, f'Grade_{grade}')
+    if not allowed_file(directory):
+        return jsonify({"error": "Access denied"}), 403
+    
+    try:
+        students = [name for name in os.listdir(directory) if os.path.isdir(os.path.join(directory, name))]
+        return jsonify(students)
+    except FileNotFoundError:
+        return jsonify([])
 
-    return render_template('directory.html', grades=grades, students=students)
+@app.route('/files', methods=['GET'])
+def list_files():
+    grade = request.args.get('grade')
+    name = request.args.get('name')
+    date = request.args.get('date')
 
-@app.route('/get-files', methods=['POST'])
-def get_files():
-    grade = request.form.get('grade')
-    student = request.form.get('student')
-    files = os.listdir(f'Demerits/{grade}')
-    student_files = [file for file in files if student in file]
+    target_dir = os.path.join(BASE_DIR, f'Grade_{grade}', name) if grade and name else BASE_DIR
+    print(f"Target directory: {target_dir}")  # Debug print
 
-    # Assuming date format is YYYY-MM-DD in the file name
-    student_files.sort(key=lambda x: datetime.strptime(x.split('_')[-1].split('.')[0], '%Y-%m-%d'))
-    return jsonify(student_files)
+    if not allowed_file(target_dir):
+        return jsonify({"error": "Access denied"}), 403
+
+    files = []
+    for root, dirs, filenames in os.walk(target_dir):
+        for filename in filenames:
+            if date and date not in filename:
+                continue
+            full_path = os.path.relpath(os.path.join(root, filename), BASE_DIR)
+            print(f"Adding file: {full_path}")  # Debug print
+            files.append(full_path)
+
+    return jsonify(files)
 
 @app.route('/download', methods=['POST'])
-def download():
-    grade = request.form.get('grade')
-    files = request.form.getlist('files[]')
-    memory_file = BytesIO()
+def download_files():
+    try:
+        data = request.get_json()
+        files = data['files']
+        print("Received files:", files)  # Debug output
 
-    with zipfile.ZipFile(memory_file, 'w') as zf:
+        if len(files) == 1:
+            file_path = os.path.join(BASE_DIR, files[0])
+            directory = os.path.dirname(file_path)
+            filename = os.path.basename(file_path)
+            print("Attempting to send file from path:", file_path)  # More debug output
+
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+                return send_from_directory(directory, filename, as_attachment=True)
+            else:
+                print("File does not exist:", file_path)  # File existence debug output
+                return jsonify({"error": "File does not exist"}), 404
+
+    except Exception as e:
+        traceback.print_exc()  # Print stack trace for detailed debug info
+        return jsonify({"error": "Internal Server Error", "message": str(e)}), 500
+    
+    
+    # For multiple files, create a zip
+    zip_stream = io.BytesIO()
+    with zipfile.ZipFile(zip_stream, 'w', zipfile.ZIP_DEFLATED) as zip_file:
         for file in files:
-            path = f'Demerits/{grade}/{file}'
-            zf.write(path, arcname=file)
+            full_path = os.path.join(BASE_DIR, file)
+            if os.path.exists(full_path) and os.path.isfile(full_path):
+                zip_file.write(full_path, arcname=os.path.basename(full_path))
+            else:
+                return jsonify({"error": f"File not found: {file}"}), 404
+    zip_stream.seek(0)
 
-    memory_file.seek(0)
-    return send_file(memory_file, attachment_filename='files.zip', as_attachment=True)
+    return Response(zip_stream.getvalue(),
+                    mimetype='application/zip',
+                    headers={"Content-Disposition": "attachment;filename=download.zip"})
+
 
 
 if __name__ == '__main__':
-    app.run(host='192.168.10.38', port=8080)
+    app.run(host='100.105.121.42', port=8081)

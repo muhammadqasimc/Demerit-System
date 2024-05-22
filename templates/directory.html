@@ -3,120 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Directory</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Demerit File Manager</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
+            background: #f4f4f9;
             padding: 20px;
             color: #333;
         }
-        .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
+        h1 {
+            color: #5a5a5a;
         }
-        select, button {
+        input, select, button {
             padding: 10px;
-            margin-bottom: 20px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
         }
         button {
-            background-color: #007bff;
+            background-color: #5c67f2;
             color: white;
-            border: none;
-            border-radius: 4px;
             cursor: pointer;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #4a54e1;
         }
-        #files {
-            margin-top: 20px;
+        ul {
+            list-style: none;
+            padding: 0;
         }
-        .file-item {
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 10px;
-            margin-bottom: 10px;
+        li {
+            margin: 8px 0;
+            padding: 8px;
+            background: #fff;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        .selected {
+            background-color: #b8daff;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Student Directory</h2>
-        <form action="/directory" method="post">
-            <label for="grade">Grade:</label>
-            <select name="grade" id="grade" onchange="updateStudents()">
-                <option>Select Grade</option>
-                {% for grade in grades %}
-                <option value="{{ grade }}">{{ grade }}</option>
-                {% endfor %}
-            </select>
-
-            <label for="student">Student:</label>
-            <select name="student" id="student">
-                <option>Select Student</option>
-                {% for student in students %}
-                <option value="{{ student }}">{{ student }}</option>
-                {% endfor %}
-            </select>
-
-            <button type="submit">Filter</button>
-        </form>
-
-        <div id="files"></div>
-    </div>
+    <h1>Demerit File Manager</h1>
+    Grade: <input type="number" id="grade" min="1" max="12" step="1">
+    Name: <select id="name">
+        <option value="">Select Student</option>
+    </select>
+    Date: <input type="date" id="date">
+    <button onclick="fetchFiles()">Load Files</button>
+    <ul id="fileList"></ul>
+    <button onclick="downloadSelected()">Download Selected</button>
 
     <script>
-        function updateStudents() {
-            $.post('/get-files', {
-                grade: $('#grade').val()
-            }, function(files) {
-                $('#files').empty();
-                files.forEach(function(file) {
-                    var fileItem = $('<div class="file-item"></div>');
-                    fileItem.append('<input type="checkbox" name="files[]" value="' + file + '"> ' + file);
-                    $('#files').append(fileItem);
+        document.getElementById('grade').addEventListener('change', function() {
+            const grade = this.value;
+            if (!grade) return; // Do nothing if no grade is selected
+
+            const nameSelect = document.getElementById('name');
+            nameSelect.innerHTML = '<option value="">Select Student</option>'; // Clear previous options
+
+            fetch(`/grades/${grade}`)
+                .then(response => response.json())
+                .then(students => {
+                    students.forEach(student => {
+                        const option = document.createElement('option');
+                        option.value = student;
+                        option.textContent = student;
+                        nameSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading students:', error);
+                    alert('Failed to load students. Please try again.');
                 });
-            });
+        });
+
+        function fetchFiles() {
+            const grade = document.getElementById('grade').value;
+            const name = document.getElementById('name').value;
+            const date = document.getElementById('date').value;
+
+            fetch(`/files?grade=${grade}&name=${name}&date=${date}`)
+                .then(response => response.json())
+                .then(files => {
+                    const fileList = document.getElementById('fileList');
+                    fileList.innerHTML = '';
+                    files.forEach(file => {
+                        const li = document.createElement('li');
+                        li.textContent = file;
+                        li.onclick = () => li.classList.toggle('selected');
+                        fileList.appendChild(li);
+                    });
+                });
         }
 
-        function downloadFiles() {
-            var grade = $('#grade').val();
-            var selectedFiles = [];
-            $('input[name="files[]"]:checked').each(function() {
-                selectedFiles.push($(this).val());
-            });
+        function downloadSelected() {
+            const selectedFiles = Array.from(document.querySelectorAll('.selected')).map(li => li.textContent);
+            console.log('Selected files for download:', selectedFiles);  // Log to check before sending
 
-            if (selectedFiles.length > 0) {
-                $.ajax({
-                    url: '/download',
-                    type: 'POST',
-                    data: JSON.stringify({ grade: grade, files: selectedFiles }),
-                    contentType: 'application/json;charset=UTF-8',
-                    success: function(response) {
-                        var blob = new Blob([response], {type: 'application/zip'});
-                        var downloadUrl = URL.createObjectURL(blob);
-                        var a = document.createElement("a");
-                        a.href = downloadUrl;
-                        a.download = "files.zip";
-                        document.body.appendChild(a);
-                        a.click();
-                        setTimeout(function() {
-                            document.body.removeChild(a);
-                            window.URL.revokeObjectURL(downloadUrl);  
-                        }, 100); 
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("Error in file download: " + error);
-                    }
-                });
-            } else {
-                alert("Please select at least one file to download.");
-            }
-}
+            fetch('/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ files: selectedFiles })
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = selectedFiles.length === 1 ? selectedFiles[0] : 'download.zip';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            })
+            .catch(error => {
+                console.error('Error downloading file:', error);
+                alert('Error downloading file. Please check the console for details.');
+            });
+        }
     </script>
 </body>
 </html>

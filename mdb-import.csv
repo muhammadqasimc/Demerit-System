@@ -1,1 +1,5 @@
 id,Learnerid,Date,Comment,LevelMisconduct,MisconductCode,MisconductDescription,ActionLevel,ActionCode,ActionDescription,DisciplinedBy,AuthorisedBy,Agency,Suspension,Option,ExpulsionDate,Month,RecommendedExpulsion,Datayear,Demerit,Merit,Type
+,2427,07/02/24 00:00:00,,1,1-07,LATE COMING (AFTER 3 MINUTES)TO CLASS,,,,,MQ,,0,,,02,,2024,2,0,Demerit
+,,28/01/24 00:00:00,,,,LATE FOR SCHOOL- (3) MINUTES,,,,,MQ,,0,,,01,,2024,,0,Demerit
+,2595,11/02/24 00:00:00,,1,1-07,LATE COMING (AFTER 3 MINUTES)TO CLASS,,,,,MQ,,0,,,02,,2024,2,0,Demerit
+,2161,19/05/24 00:00:00,,,,"NEGLECTING HOMEWORK/HOMEWORK NOT DONE. TEXTBOOKS & SCRIPTS NOT AVAILABLE, WORK NOT UP TO DATE",,,,,MQ,,0,,,05,,2024,,0,Demerit

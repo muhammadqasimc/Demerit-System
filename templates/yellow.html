@@ -64,6 +64,51 @@
         .modal-content #clearSignature {
             background-color: #f44336;
         }
+        #submitButton {
+            background-color: #4CAF50; /* Green */
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        #submitButton:hover {
+            background-color: #45a049;
+        }
+        #loading {
+            display: none; /* Start hidden */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4); /* Dim the background */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+        }
+        .spinner {
+            border: 6px solid #f3f3f3; /* Light grey */
+            border-top: 6px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #signatureCanvas {
+            border: 2px solid #000;
+            width: 400px;
+            height: 200px;
+            margin-bottom: 20px;
+        }
+        
     </style>
 </head>
 <body>
@@ -113,19 +158,22 @@
 <label>Attach Photo:</label>
 <input accept="image/*" name="photo" type="file"/>
 <br/>
+<label>Signature Photo:</label>
+<input accept="image/*" name="signature_photo" type="file"/>
+<br/>
 <label>Notes:</label>
 <input id="notes" name="notes" type="text"/>
 <br/>
 
 
 <br/>
-<input type="submit" value="Submit"/>
+<input type="submit" id="submitButton" value="Submit"/>
 </form>
 <!-- Student Signature Modal -->
 <div class="modal" id="studentSignatureModal">
 <div class="modal-content">
 <h2>Student Signature</h2>
-<canvas height="150" id="studentSignatureCanvas" width="300"></canvas>
+<canvas height="180" id="studentSignatureCanvas" width="300"></canvas>
 <button id="clearStudentSignature">Clear Signature</button>
 <button id="saveStudentSignature">Save Signature</button>
 </div>
@@ -134,7 +182,7 @@
 <div class="modal" id="teacherSignatureModal">
 <div class="modal-content">
 <h2>Teacher Signature</h2>
-<canvas height="150" id="teacherSignatureCanvas" width="300"></canvas>
+<canvas height="180" id="teacherSignatureCanvas" width="300"></canvas>
 <button id="clearTeacherSignature">Clear Signature</button>
 <button id="saveTeacherSignature">Save Signature</button>
 </div>
@@ -143,7 +191,7 @@
 <div class="modal" id="witnessSignatureModal">
 <div class="modal-content">
 <h2>Witness Signature</h2>
-<canvas height="150" id="witnessSignatureCanvas" width="300"></canvas>
+<canvas height="180" id="witnessSignatureCanvas" width="300"></canvas>
 <button id="clearWitnessSignature">Clear Signature</button>
 <button id="saveWitnessSignature">Save Signature</button>
 </div>
@@ -152,6 +200,19 @@
 
 
 
+<div id="loading">
+    <div class="spinner"></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#demeritsForm').on('submit', function(event) {
+            $('#loading').css('display', 'flex'); // Change to 'flex' to show it
+            $('#submitButton').prop('disabled', true); // Optionally disable the submit button
+        });
+    });
+    </script>
 
 
 <script>
@@ -170,10 +231,26 @@
     });
 </script>
 
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
 
 <script>
+
+        
         // JavaScript code to handle signature modals and capture
+        const signaturePadOptions = {
+            minWidth: 1,
+            maxWidth: 3,
+            throttle: 16,
+            velocityFilterWeight: 0 // Adjust as needed to improve the smoothness
+        };
+
+        const studentSignatureCanvas = new SignaturePad(document.getElementById("studentSignatureCanvas"), signaturePadOptions);
+        const teacherSignatureCanvas = new SignaturePad(document.getElementById("teacherSignatureCanvas"), signaturePadOptions);
+        const witnessSignatureCanvas = new SignaturePad(document.getElementById("witnessSignatureCanvas"), signaturePadOptions);
+
+
+
         const studentSignatureModal = document.getElementById("studentSignatureModal");
         const teacherSignatureModal = document.getElementById("teacherSignatureModal");
         const witnessSignatureModal = document.getElementById("witnessSignatureModal");
@@ -182,9 +259,9 @@
         const openTeacherSignatureModalBtn = document.getElementById("openTeacherSignatureModal");
         const openWitnessSignatureModalBtn = document.getElementById("openWitnessSignatureModal");
 
-        const studentSignatureCanvas = new SignaturePad(document.getElementById("studentSignatureCanvas"));
-        const teacherSignatureCanvas = new SignaturePad(document.getElementById("teacherSignatureCanvas"));
-        const witnessSignatureCanvas = new SignaturePad(document.getElementById("witnessSignatureCanvas"));
+        // const studentSignatureCanvas = new SignaturePad(document.getElementById("studentSignatureCanvas"));
+        // const teacherSignatureCanvas = new SignaturePad(document.getElementById("teacherSignatureCanvas"));
+        // const witnessSignatureCanvas = new SignaturePad(document.getElementById("witnessSignatureCanvas"));
 
         const clearStudentSignatureBtn = document.getElementById("clearStudentSignature");
         const clearTeacherSignatureBtn = document.getElementById("clearTeacherSignature");
@@ -251,6 +328,8 @@
             // Close the witness signature modal
             witnessSignatureModal.style.display = "none";
         });
+
+        
     </script>
 <script>
 document.getElementById('grade').addEventListener('change', function () {
