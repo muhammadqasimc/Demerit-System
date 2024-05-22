@@ -23,7 +23,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from werkzeug.utils import secure_filename
 from PIL import Image as PILImage
-
+import pyodbc
 
 
 from fpdf import FPDF
@@ -372,6 +372,49 @@ def pink():
         return render_template('pink.html', grades=grades, offenses=pinkoffenses_list, namesByGrade=names_by_grade)
     else:
         return redirect(url_for('login'))
+
+@app.route('/super_admin')
+def super_admin():
+    if 'username' in session:
+        username = session['username']
+        if users[username]['is_admin']:
+            return render_template('super_admin.html')
+        else:
+            return 'You are not authorized to access this page.'
+    return render_template('super_admin.html')
+
+@app.route('/reload_db', methods=['POST'])
+def reload_db():
+    if 'username' in session:
+        username = session['username']
+        if users[username]['is_admin']:
+            return render_template('super_admin.html')
+        else:
+            return 'You are not authorized to access this page.'
+    # Logic for reloading the database
+    return redirect(url_for('super_admin'))
+
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    
+    if request.method == 'POST':
+        selected_user = request.form['username']
+        new_password = request.form['new_password']
+        if selected_user in users:
+            users[selected_user]['password'] = new_password
+        return redirect(url_for('change_password'))
+    return render_template('change_password.html', users=users)
+
+@app.route('/upload_db', methods=['POST'])
+def upload_db():
+    if 'username' in session:
+        username = session['username']
+        if users[username]['is_admin']:
+            return render_template('super_admin.html')
+        else:
+            return 'You are not authorized to access this page.'
+    # Logic for uploading to the database
+    return redirect(url_for('super_admin'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -931,6 +974,46 @@ def download_files():
                     headers={"Content-Disposition": "attachment;filename=download.zip"})
 
 
+def get_tables(mdb_path):
+    conn_str = (
+        r'DRIVER={MDBTools};'
+        f'DBQ={mdb_path};'
+    )
+    conn = pyodbc.connect(conn_str)
+    cursor = conn.cursor()
+    cursor.tables()
+    tables = [row.table_name for row in cursor if row.table_type == 'TABLE']
+    conn.close()
+    return tables
+
+def read_mdb_table(mdb_path, table_name):
+    conn_str = (
+        r'DRIVER={MDBTools};'
+        f'DBQ={mdb_path};'
+    )
+    conn = pyodbc.connect(conn_str)
+    query = f'SELECT * FROM {table_name}'
+    df = pd.read_sql(query, conn)
+    conn.close()
+    return df
+
+@app.route('/db', methods=['GET', 'POST'])
+def db():
+    mdb_path = '/home/mq/kdb.mdb'  # Update with your MDB file path
+    tables = get_tables(mdb_path)
+    
+    if request.method == 'POST':
+        table_name = request.form['table_name']
+        try:
+            df = read_mdb_table(mdb_path, table_name)
+            csv_path = f'/path/to/save/{table_name}.csv'  # Update with your desired CSV file path
+            df.to_csv(csv_path, index=False)
+            message = f"Table {table_name} exported to CSV successfully!"
+        except Exception as e:
+            message = f"Error: {str(e)}"
+        return render_template('db.html', tables=tables, message=message)
+
+    return render_template('db.html', tables=tables)
 
 if __name__ == '__main__':
     app.run(host='100.105.121.42', port=8081)

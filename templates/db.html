@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Table</title>
+</head>
+<body>
+    <h1>Select a Table to Export to CSV</h1>
+    <form method="POST">
+        <label for="table_name">Table Name:</label>
+        <select id="table_name" name="table_name">
+            {% for table in tables %}
+                <option value="{{ table }}">{{ table }}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Export to CSV">
+    </form>
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+</body>
+</html>

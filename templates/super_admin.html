@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='superadmin.css') }}">
+    <title>Super Admin</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Super Admin Page</h1>
+        <form action="{{ url_for('reload_db') }}" method="post">
+            <button type="submit">Reload from DB</button>
+        </form>
+        <form action="{{ url_for('change_password') }}" method="get">
+            <button type="submit">Change User Password</button>
+        </form>
+        <form action="{{ url_for('upload_db') }}" method="post">
+            <button type="submit">Upload to DB</button>
+        </form>
+    </div>
+</body>
+</html>
