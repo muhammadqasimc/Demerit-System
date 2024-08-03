@@ -50,7 +50,7 @@
     Name: <select id="name">
         <option value="">Select Student</option>
     </select>
-    Date: <input type="date" id="date">
+    Date: <input type="text" id="date" placeholder="dd-mm-yy" pattern="\d{2}-\d{2}-\d{2}">
     <button onclick="fetchFiles()">Load Files</button>
     <ul id="fileList"></ul>
     <button onclick="downloadSelected()">Download Selected</button>

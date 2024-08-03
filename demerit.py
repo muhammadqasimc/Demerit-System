@@ -558,7 +558,7 @@ def submit_form():
         # Handle the witness's signature (similar code as above)
         witness_signature_data_url = request.form['witness_signature']
         if witness_signature_data_url:
-            witness_signature_filename = f'witness_signature_{datetime.now().strftime("%Y%m%d%H%M%S")}.png'
+            witness_signature_filename = f'w_{selected_name}_{current_date}.png'
             witness_signature_path = os.path.join(signature_folder, witness_signature_filename)
             witness_signature_image_data = witness_signature_data_url.split(',')[1]
             witness_signature_image_binary = base64.b64decode(witness_signature_image_data)
@@ -661,7 +661,7 @@ def approve_submission(index):
 
         # Left Column
         pdf.set_fill_color(200, 200, 200)  # Background fill color
-        column_width = 90  # Adjust the column width as needed
+        column_width = 145  # Adjust the column width as needed
         column_width1 = 25  # Adjust the column width as needed
 
         pdf.cell(column_width1, 10, txt="Name:", fill=True)
@@ -674,44 +674,129 @@ def approve_submission(index):
         pdf.cell(column_width, 10, txt=submission['Date'], ln=True)
 
         pdf.cell(column_width1, 10, txt="Notes:", fill=True)
-        pdf.cell(column_width, 10, txt=submission['Notes'], ln=True)
+        # Use multi_cell to handle lengthy notes
+        pdf.multi_cell(column_width, 10, txt=submission['Notes'])  # Automatically adjusts height
+
 
         pdf.cell(column_width1, 10, txt="Educator:", fill=True)
         pdf.cell(column_width, 10, txt=submission['Username'], ln=True)
 
+        
+
+        #pdf.cell(column_width1, 10, txt="Offenses:", fill=True)
+        #pdf.cell(column_width, 10, txt=submission['Offenses'], ln=True)  # Multiline cell for offenses
+
+        offense_level = submission["offenseLevel"]
+    
+        # Print the offense level to debug
+        print(f"Offense level: {offense_level}")
+
+        if offense_level == '1':
+            color = (255, 255, 0)  # Yellow color for level 1
+            print("Setting color to Yellow for level 1")
+        elif offense_level == '2':
+            color = (255, 182, 193)  # Pink color for level 2
+            print("Setting color to Pink for level 2")
+        elif offense_level == '3':
+            color = (128, 0, 128)  # Purple color for level 3
+            print("Setting color to Purple for level 3")
+        else:
+            color = (255, 255, 255)  # Default white color for other levels
+            print("Offense level not recognized, defaulting to white")
+
+        # Apply the fill color
+        pdf.set_fill_color(*color)
+
+        # Create cells
         pdf.cell(column_width1, 10, txt="Offenses:", fill=True)
-        pdf.cell(column_width, 10, txt=submission['Offenses'], ln=True)  # Multiline cell for offenses
+        pdf.multi_cell(column_width, 10, txt=submission['Offenses'], fill=True)  # Automatically adjusts height
+
+
+        # Reset the fill color to the default (gray) for other cells
+        pdf.set_fill_color(200, 200, 200)
+        print("Reset fill color to default gray")
 
         pdf.cell(column_width1, 10, txt="Points:", fill=True)
         pdf.cell(column_width, 10, txt=submission['offensePoint'], ln=True)
 
         pdf.ln(10)  # Add some space
 
-        # Title for the student's signature cell
+        # # Title for the student's signature cell
+        # pdf.set_font("Arial", style='B', size=12)
+        # pdf.cell(0, 10, txt="Student Signature", ln=True, align='C')
+
+        # # Create a cell for the student's signature
+        # pdf.set_fill_color(255, 255, 255)  # White background
+        # pdf.cell(0, 30, txt="", border=1, ln=True)  # Cell for the signature with borders
+
+        # # Load and embed the student's signature image within the cell
+        # student_signature_filename = f'{submission["Name"]}_{submission["Date"]}.png'
+        # student_signature_path = os.path.join(signature_folder, student_signature_filename)
+        # pdf.image(student_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() - 25, w=0, h=20)  # Adjust position and size
+
+        # # Title for the teacher's signature cell
+        # pdf.set_font("Arial", style='B', size=12)
+        # pdf.cell(0, 10, txt="Teacher Signature", ln=True, align='C')
+
+        # # Create a cell for the teacher's signature
+        # pdf.set_fill_color(255, 255, 255)  # White background
+        # pdf.cell(0, 30, txt="", border=1, ln=True)  # Cell for the signature with borders
+
+        # # Load and embed the teacher's signature image within the cell
+        # teacher_signature_filename = f'{submission["Username"]}_{submission["Date"]}.png'
+        # teacher_signature_path = os.path.join(signature_folder, teacher_signature_filename)
+        # pdf.image(teacher_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() - 25, w=0, h=20)  # Adjust position and size
+
+        # Set up for signatures in columns
+        signature_height = 30  # Height for signature cells
+        signature_width = 60   # Width for each signature column
+
+        # Title for the signatures section
         pdf.set_font("Arial", style='B', size=12)
-        pdf.cell(0, 10, txt="Student Signature", ln=True, align='C')
+        pdf.cell(0, 10, txt="Signatures", ln=True, align='C')
+        pdf.ln(5)  # Add some space before the signatures
 
-        # Create a cell for the student's signature
-        pdf.set_fill_color(255, 255, 255)  # White background
-        pdf.cell(0, 30, txt="", border=1, ln=True)  # Cell for the signature with borders
+        # Create headers for the signatures
+        pdf.set_fill_color(255, 255, 255)  # White background for signature cells
 
-        # Load and embed the student's signature image within the cell
+        # Headers for signature columns
+        pdf.cell(signature_width, 10, txt="Student", border=1, ln=0, align='C', fill=True)
+        pdf.cell(signature_width, 10, txt="Teacher", border=1, ln=0, align='C', fill=True)
+        pdf.cell(signature_width, 10, txt="Witness", border=1, ln=1, align='C', fill=True)
+
+        # Create cells for the signatures
+        pdf.cell(signature_width, signature_height, txt="", border=1, ln=0, align='C', fill=True)
+        pdf.cell(signature_width, signature_height, txt="", border=1, ln=0, align='C', fill=True)
+        pdf.cell(signature_width, signature_height, txt="", border=1, ln=1, align='C', fill=True)
+
+        # Move the cursor back to the start of the signatures row
+        pdf.set_y(pdf.get_y() - signature_height)
+
+        # Load and embed the student signature image within the cell
         student_signature_filename = f'{submission["Name"]}_{submission["Date"]}.png'
         student_signature_path = os.path.join(signature_folder, student_signature_filename)
-        pdf.image(student_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() - 25, w=0, h=20)  # Adjust position and size
+        if os.path.exists(student_signature_path):
+            pdf.image(student_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() + 5, w=signature_width - 10, h=20)
 
-        # Title for the teacher's signature cell
-        pdf.set_font("Arial", style='B', size=12)
-        pdf.cell(0, 10, txt="Teacher Signature", ln=True, align='C')
+        # Move the cursor to the next cell
+        pdf.set_x(pdf.get_x() + signature_width)
 
-        # Create a cell for the teacher's signature
-        pdf.set_fill_color(255, 255, 255)  # White background
-        pdf.cell(0, 30, txt="", border=1, ln=True)  # Cell for the signature with borders
-
-        # Load and embed the teacher's signature image within the cell
+        # Load and embed the teacher signature image within the cell
         teacher_signature_filename = f'{submission["Username"]}_{submission["Date"]}.png'
         teacher_signature_path = os.path.join(signature_folder, teacher_signature_filename)
-        pdf.image(teacher_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() - 25, w=0, h=20)  # Adjust position and size
+        if os.path.exists(teacher_signature_path):
+            pdf.image(teacher_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() + 5, w=signature_width - 10, h=20)
+
+        # Move the cursor to the next cell
+        pdf.set_x(pdf.get_x() + signature_width)
+
+        # Optional Witness Signature
+        witness_signature_filename = f'w_{submission["Name"]}_{submission["Date"]}.png'
+        witness_signature_path = os.path.join(signature_folder, witness_signature_filename)
+        if os.path.exists(witness_signature_path):
+            pdf.image(witness_signature_path, x=pdf.get_x() + 5, y=pdf.get_y() + 5, w=signature_width - 10, h=20)
+
+        pdf.ln(5)  # Add some space after the signatures
 
 
         # # Title for the witness's signature
@@ -735,7 +820,7 @@ def approve_submission(index):
         
 
 
-        # Check if the image exists (it's good to have a safety check)
+        # Check if the image exists
         if os.path.exists(image_path):
             # Add a new page to the PDF
             pdf.add_page()
@@ -744,21 +829,27 @@ def approve_submission(index):
             with PILImage.open(image_path) as img:
                 img_width, img_height = img.size
 
-            # A4 dimensions in points
+            # A4 dimensions in mm
             a4_width_mm = 210
             a4_height_mm = 297
 
-            # Calculate the scaling factor
-            width_scale = a4_width_mm / img_width
-            height_scale = a4_height_mm / img_height
+            # Calculate scaling factors to fit half of the page
+            width_scale = (a4_width_mm / 2) / img_width
+            height_scale = (a4_height_mm / 2) / img_height
+
+            # Use the minimum scale factor to maintain the aspect ratio
             scale_factor = min(width_scale, height_scale)
 
             # Calculate the new image dimensions
             new_img_width = img_width * scale_factor
             new_img_height = img_height * scale_factor
 
+            # Center the image on the half-page (top half)
+            x_offset = (a4_width_mm - new_img_width) / 2
+            y_offset = (a4_height_mm / 4) - (new_img_height / 2)
+
             # Embed the image in the new page
-            pdf.image(image_path, x=(a4_width_mm - new_img_width) / 2, y=(a4_height_mm - new_img_height) / 2, w=new_img_width, h=new_img_height)
+            pdf.image(image_path, x=x_offset, y=y_offset, w=new_img_width, h=new_img_height)
 
         # Save the PDF to the file
         pdf.output(pdf_path)
@@ -1016,4 +1107,4 @@ def db():
     return render_template('db.html', tables=tables)
 
 if __name__ == '__main__':
-    app.run(host='100.105.121.42', port=8081)
+    app.run(debug=True, host='100.105.121.42', port=8081)

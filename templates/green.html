@@ -119,21 +119,22 @@
 </div>
 <form id="demeritsForm" action="/submit_form" enctype="multipart/form-data" method="POST">
 <label for="grade">Select Grade:</label>
-<select id="grade" name="grade">
-                {% for grade in grades %}
-                    <option value="{{ grade }}">{{ grade }}</option>
-                {% endfor %}
-            </select>
+<select id="grade" name="grade" required>
+    <option value="" disabled selected>-- Select Grade --</option>
+    {% for grade in grades %}
+        <option value="{{ grade }}">{{ grade }}</option>
+    {% endfor %}
+</select>
 <br/>
 <label for="name">Select Name:</label>
 <select id="name" name="name">
-<option value="">-- Select a grade first --</option>
+    <option value="">-- Select a grade first --</option>
 </select>
 <input id="learner_id" name="learner_id" type="hidden" value=""/>
-
 <br/>
 <label>Select Offense:</label>
-<select name="offense" id="offense-select">
+<select name="offense" id="offense-select" required>
+    <option value="" disabled selected>-- Select Offense --</option>
     {% for offense in offenses %}
         <option value="{{ offense['Description'] }}" data-code="{{ offense['Code'] }}" data-level="{{ offense['Level'] }}" data-type="{{ offense['Type'] }}" data-point="{{ offense['Point'] }}">
             {{ offense['Description'] }}
